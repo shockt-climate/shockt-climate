@@ -57,6 +57,8 @@ const mockRoute: RouteResponse = {
   traffic_volume: null,
 };
 
+const noDisruptions = new Set<string>();
+
 describe("RouteDetail", () => {
   it("renders rank and total emissions", () => {
     render(
@@ -66,6 +68,7 @@ describe("RouteDetail", () => {
         rank={1}
         selected={false}
         onSelect={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     expect(screen.getByText("#1")).toBeInTheDocument();
@@ -80,6 +83,7 @@ describe("RouteDetail", () => {
         rank={1}
         selected={false}
         onSelect={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     expect(
@@ -96,6 +100,7 @@ describe("RouteDetail", () => {
         rank={1}
         selected={false}
         onSelect={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     expect(screen.getByText(/5\.4 t total/)).toBeInTheDocument();
@@ -109,6 +114,7 @@ describe("RouteDetail", () => {
         rank={1}
         selected={false}
         onSelect={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     expect(screen.getByText(/445\.3 kg CO₂e/)).toBeInTheDocument();
@@ -122,6 +128,7 @@ describe("RouteDetail", () => {
         rank={1}
         selected={false}
         onSelect={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     expect(screen.getByText(/suez/)).toBeInTheDocument();
@@ -135,6 +142,7 @@ describe("RouteDetail", () => {
         rank={1}
         selected={true}
         onSelect={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     expect(
@@ -150,6 +158,7 @@ describe("RouteDetail", () => {
         rank={1}
         selected={false}
         onSelect={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     expect(screen.getByText("19.9 days")).toBeInTheDocument();

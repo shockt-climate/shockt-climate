@@ -54,6 +54,19 @@ export const FactorInfo = Schema.Struct({
 });
 export type FactorInfo = typeof FactorInfo.Type;
 
+export const CommodityPort = Schema.Struct({
+  node_id: Schema.NonEmptyString,
+  name: Schema.String,
+  weight_t: Schema.Number,
+});
+
+export const CommodityResponse = Schema.Struct({
+  hs6: Schema.NonEmptyString,
+  description: Schema.String,
+  top_ports: Schema.Array(CommodityPort),
+});
+export type CommodityResponse = typeof CommodityResponse.Type;
+
 export const QueryEcho = Schema.Struct({
   origin: Schema.NonEmptyString,
   destination: Schema.NonEmptyString,
@@ -74,7 +87,7 @@ export const RoutesResponse = Schema.Struct({
     Schema.Record({ key: Schema.String, value: Schema.Array(ComparisonRoute) })
   ),
   factors: Schema.Record({ key: Schema.String, value: FactorInfo }),
-  commodity: Schema.NullOr(Schema.Unknown),
+  commodity: Schema.NullOr(CommodityResponse),
   query: QueryEcho,
 });
 export type RoutesResponse = typeof RoutesResponse.Type;

@@ -4,10 +4,15 @@ import { SearchBar, type SearchParams } from "./components/SearchBar";
 import { RouteList } from "./components/RouteList";
 import { RouteMap } from "./components/RouteMap";
 import { EmissionsScopeToggle } from "./components/EmissionsScopeToggle";
+import { ModeComparison } from "./components/ModeComparison";
+import { ComparisonList } from "./components/ComparisonList";
+import { CommodityContext } from "./components/CommodityContext";
 import { useRoutes } from "./hooks/useRoutes";
+import { useDisruptions } from "./hooks/useDisruptions";
 
 export function App(): JSX.Element {
   const routes = useRoutes();
+  const disruptions = useDisruptions();
   const [scope, setScope] = useState<EmissionScope>("wtw");
   const [selectedRoute, setSelectedRoute] = useState<{
     category: RouteCategory;
@@ -22,6 +27,9 @@ export function App(): JSX.Element {
       cargo_t: params.cargoT ?? undefined,
       modes: params.modes.join(","),
       inland_mode: params.inlandMode,
+      scenario: params.scenario,
+      compare_scenario: params.compareScenario ?? undefined,
+      hs6: params.hs6 ?? undefined,
     });
   }
 
@@ -44,21 +52,41 @@ export function App(): JSX.Element {
 
       {routes.data && (
         <>
+          <ModeComparison
+            data={routes.data}
+            scope={scope}
+            onFilterMode={(category) => {
+              setSelectedRoute({ category, index: 0 });
+            }}
+          />
+
           <div className="results-toolbar">
             <EmissionsScopeToggle value={scope} onChange={setScope} />
           </div>
 
-          <div className="results-layout">
-            <RouteList
-              data={routes.data}
+          {routes.data.commodity != null && (
+            <CommodityContext commodity={routes.data.commodity} />
+          )}
+
+          {routes.data.comparison != null ? (
+            <ComparisonList
+              comparison={routes.data.comparison}
               scope={scope}
-              selectedIndex={selectedRoute}
-              onSelectRoute={(category, index) =>
-                setSelectedRoute({ category, index })
-              }
             />
-            <RouteMap data={routes.data} selectedIndex={selectedRoute} />
-          </div>
+          ) : (
+            <div className="results-layout">
+              <RouteList
+                data={routes.data}
+                scope={scope}
+                selectedIndex={selectedRoute}
+                onSelectRoute={(category, index) =>
+                  setSelectedRoute({ category, index })
+                }
+                disruptedPassages={disruptions.disruptedPassages}
+              />
+              <RouteMap data={routes.data} selectedIndex={selectedRoute} />
+            </div>
+          )}
         </>
       )}
     </div>

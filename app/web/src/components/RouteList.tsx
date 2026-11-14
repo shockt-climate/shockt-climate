@@ -9,6 +9,7 @@ interface Props {
   scope: EmissionScope;
   selectedIndex: { category: RouteCategory; index: number } | null;
   onSelectRoute: (category: RouteCategory, index: number) => void;
+  disruptedPassages: ReadonlySet<string>;
 }
 
 const CATEGORY_LABELS: Record<RouteCategory, string> = {
@@ -24,6 +25,7 @@ export function RouteList({
   scope,
   selectedIndex,
   onSelectRoute,
+  disruptedPassages,
 }: Props): JSX.Element {
   const [activeTab, setActiveTab] = useState<RouteCategory | "all">("all");
 
@@ -82,6 +84,7 @@ export function RouteList({
                 selectedIndex?.category === cat && selectedIndex.index === i
               }
               onSelect={() => onSelectRoute(cat, i)}
+              disruptedPassages={disruptedPassages}
             />
           ))}
         </section>

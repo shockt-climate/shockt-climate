@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import type { RouteResponse } from "../api/schemas";
 import type { EmissionScope } from "../types";
 import { MODE_COLORS } from "../types";
+import { DisruptionBadge } from "./DisruptionBadge";
 
 interface Props {
   route: RouteResponse;
@@ -9,6 +10,7 @@ interface Props {
   rank: number;
   selected: boolean;
   onSelect: () => void;
+  disruptedPassages: ReadonlySet<string>;
 }
 
 function formatKg(value: number): string {
@@ -64,6 +66,7 @@ export function RouteDetail({
   rank,
   selected,
   onSelect,
+  disruptedPassages,
 }: Props): JSX.Element {
   const totalEmissions = scopeValue(route, scope);
 
@@ -120,6 +123,10 @@ export function RouteDetail({
       {route.passages.length > 0 && (
         <div className="route-passages">
           Passages: {route.passages.join(", ")}
+          <DisruptionBadge
+            passages={route.passages}
+            disruptedPassages={disruptedPassages}
+          />
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@ import { useState, type JSX } from "react";
 import type { NodeResult } from "../api/schemas";
 import type { LaneMode } from "../types";
 import { NodeAutocomplete } from "./NodeAutocomplete";
+import { OptionsPanel } from "./OptionsPanel";
 
 const ALL_MODES: LaneMode[] = ["vessel", "air", "truck", "rail"];
 
@@ -11,6 +12,9 @@ export interface SearchParams {
   cargoT: number | null;
   modes: LaneMode[];
   inlandMode: "truck" | "rail";
+  scenario: string;
+  compareScenario: string | null;
+  hs6: string | null;
 }
 
 interface Props {
@@ -26,6 +30,14 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
   const [cargoT, setCargoT] = useState("");
   const [modes, setModes] = useState<Set<LaneMode>>(new Set(ALL_MODES));
   const [inlandMode, setInlandMode] = useState<"truck" | "rail">("truck");
+  const [scenario, setScenario] = useState("open");
+  const [compareScenario, setCompareScenario] = useState<string | null>(null);
+
+  function handleScenarioChange(next: string) {
+    setScenario(next);
+    if (compareScenario === next) setCompareScenario(null);
+  }
+  const [hs6, setHs6] = useState("");
 
   function toggleMode(mode: LaneMode) {
     setModes((prev) => {
@@ -52,6 +64,9 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
       cargoT: cargoT ? Number(cargoT) : null,
       modes: [...modes],
       inlandMode,
+      scenario,
+      compareScenario,
+      hs6: hs6 || null,
     });
   }
 
@@ -99,23 +114,24 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
           ))}
         </fieldset>
 
-        <label>
-          Inland mode
-          <select
-            value={inlandMode}
-            onChange={(e) =>
-              setInlandMode(e.target.value as "truck" | "rail")
-            }
-          >
-            <option value="truck">Truck</option>
-            <option value="rail">Rail</option>
-          </select>
-        </label>
-
-        <button type="submit" disabled={loading || !originNode || !destinationNode}>
+        <button
+          type="submit"
+          disabled={loading || !originNode || !destinationNode}
+        >
           {loading ? "Calculating..." : "Calculate"}
         </button>
       </div>
+
+      <OptionsPanel
+        scenario={scenario}
+        compareScenario={compareScenario}
+        onScenarioChange={handleScenarioChange}
+        onCompareChange={setCompareScenario}
+        inlandMode={inlandMode}
+        onInlandModeChange={setInlandMode}
+        hs6={hs6}
+        onHs6Change={setHs6}
+      />
     </form>
   );
 }

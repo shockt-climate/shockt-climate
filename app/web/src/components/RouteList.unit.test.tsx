@@ -56,6 +56,8 @@ const mockData: RoutesResponse = {
   },
 };
 
+const noDisruptions = new Set<string>();
+
 describe("RouteList", () => {
   it("shows tab counts", () => {
     render(
@@ -64,6 +66,7 @@ describe("RouteList", () => {
         scope="wtw"
         selectedIndex={null}
         onSelectRoute={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     expect(screen.getByText("All (3)")).toBeInTheDocument();
@@ -78,6 +81,7 @@ describe("RouteList", () => {
         scope="wtw"
         selectedIndex={null}
         onSelectRoute={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     expect(screen.queryByText(/Truck/)).not.toBeInTheDocument();
@@ -91,6 +95,7 @@ describe("RouteList", () => {
         scope="wtw"
         selectedIndex={null}
         onSelectRoute={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     fireEvent.click(screen.getByText("Air (1)"));
@@ -110,6 +115,7 @@ describe("RouteList", () => {
         scope="wtw"
         selectedIndex={null}
         onSelectRoute={vi.fn()}
+        disruptedPassages={noDisruptions}
       />
     );
     expect(screen.getByText("No routes found.")).toBeInTheDocument();
@@ -123,6 +129,7 @@ describe("RouteList", () => {
         scope="wtw"
         selectedIndex={null}
         onSelectRoute={onSelect}
+        disruptedPassages={noDisruptions}
       />
     );
     const cards = document.querySelectorAll(".route-card");
