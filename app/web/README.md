@@ -1,32 +1,49 @@
-# React + TypeScript + Vite
+# ShockT Climate Route Calculator — Front End
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript + Effect front end for the route calculator. See [the plan](../../docs/plans/route-calculator.md).
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### Prerequisites
 
-## React Compiler
+- Node.js 20+
+- The API server running at `http://localhost:8000` (see [`app/api/README.md`](../api/README.md))
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Setup
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+cd app/web
+npm install
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+### Run
+
+Start both the API and front end together from the repo root:
+
+```bash
+DATABASE_URL="postgresql://..." ./dev.sh
+```
+
+Or run the front end alone (requires the API already running on port 8000):
+
+```bash
+cd app/web
+npm run dev
+```
+
+Opens at `http://localhost:5173`. The Vite dev server proxies `/api` requests to `http://localhost:8000`.
+
+### Tests
+
+```bash
+cd app/web
+npx vitest run
+```
+
+### Lint and type-check
+
+```bash
+cd app/web
+npm run lint
+npx tsc --noEmit -p tsconfig.app.json
+```

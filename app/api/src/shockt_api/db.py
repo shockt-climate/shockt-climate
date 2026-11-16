@@ -81,12 +81,12 @@ def _load_feeder_edges(
 ) -> dict[tuple[str, str], FeederEdge]:
     rows = conn.execute(
         "select "
-        "  'departure_port:' || origin_port_id as origin_node, "
+        "  'departure_port:' || start_port_id as origin_node, "
         "  'departure_port:' || hub_port_id as hub_node, "
-        "  weighted_mean_distance_km, "
+        "  median_distance_km, "
         "  hub_has_us_voyages "
         "from core.agg_feeder_hub_shares_monthly "
-        "where year_month = (select max(year_month) from core.agg_feeder_hub_shares_monthly)"
+        "where month = (select max(month) from core.agg_feeder_hub_shares_monthly)"
     ).fetchall()
     result: dict[tuple[str, str], FeederEdge] = {}
     for origin_node, hub_node, km, hub_has_us in rows:
@@ -181,23 +181,46 @@ def load_cached_data(database_url: str) -> CachedData:
 # ---------------------------------------------------------------------------
 
 
+_US_STATE_NAMES: dict[str, str] = {
+    "alabama": "AL", "alaska": "AK", "arizona": "AZ", "arkansas": "AR", "california": "CA",
+    "colorado": "CO", "connecticut": "CT", "delaware": "DE", "district of columbia": "DC",
+    "florida": "FL", "georgia": "GA", "hawaii": "HI", "idaho": "ID", "illinois": "IL",
+    "indiana": "IN", "iowa": "IA", "kansas": "KS", "kentucky": "KY", "louisiana": "LA",
+    "maine": "ME", "maryland": "MD", "massachusetts": "MA", "michigan": "MI", "minnesota": "MN",
+    "mississippi": "MS", "missouri": "MO", "montana": "MT", "nebraska": "NE", "nevada": "NV",
+    "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY",
+    "north carolina": "NC", "north dakota": "ND", "ohio": "OH", "oklahoma": "OK", "oregon": "OR",
+    "pennsylvania": "PA", "rhode island": "RI", "south carolina": "SC", "south dakota": "SD",
+    "tennessee": "TN", "texas": "TX", "utah": "UT", "vermont": "VT", "virginia": "VA",
+    "washington": "WA", "west virginia": "WV", "wisconsin": "WI", "wyoming": "WY",
+}
+
+
 def search_nodes(
     conn: psycopg.Connection[tuple],
     q: str,
     kind: str | None = None,
     limit: int = 20,
 ) -> list[dict[str, object]]:
-    """Search nodes by name, country name or ISO code."""
+    """Search nodes by name, country name, ISO code or US state name."""
     escaped = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     pattern = f"%{escaped}%"
+
+    state_code = _US_STATE_NAMES.get(q.strip().lower())
+
     sql = (
         "select n.node_id, n.kind, n.name, n.iso3, n.lat, n.lon "
         "from core.dim_nodes n "
         "left join core.dim_country c on c.iso3 = n.iso3 "
         "where (n.name ilike %(pattern)s or n.iso3 ilike %(pattern)s "
-        "  or c.country_name ilike %(pattern)s)"
+        "  or n.source_key ilike %(pattern)s "
+        "  or c.cty_name ilike %(pattern)s"
     )
     params: dict[str, object] = {"pattern": pattern, "limit": limit}
+    if state_code:
+        sql += " or n.source_key = %(state_code)s"
+        params["state_code"] = state_code
+    sql += ")"
     if kind:
         sql += " and n.kind = %(kind)s"
         params["kind"] = kind
@@ -212,11 +235,11 @@ def search_nodes(
 def list_countries(conn: psycopg.Connection[tuple]) -> list[dict[str, object]]:
     """Countries with departure nodes, plus which modes are available."""
     rows = conn.execute(
-        "select distinct n.iso3, c.country_name "
+        "select distinct n.iso3, c.cty_name "
         "from core.dim_nodes n "
         "join core.dim_country c on c.iso3 = n.iso3 "
         "where n.kind in ('departure_port', 'departure_airport', 'mexico_plant') "
-        "order by c.country_name"
+        "order by c.cty_name"
     ).fetchall()
 
     result = []

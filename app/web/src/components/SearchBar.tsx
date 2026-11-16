@@ -84,7 +84,7 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
           kind="destination_state"
           value={destinationNode}
           onChange={setDestinationNode}
-          placeholder="US state..."
+          placeholder="State name or code (e.g. Texas, CA)..."
         />
         <label>
           Cargo (tonnes)
