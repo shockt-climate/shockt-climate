@@ -30,6 +30,14 @@ class TestNodeSearch:
         data = resp.json()
         assert all(r["kind"] == "departure_port" for r in data)
 
+    def test_search_with_several_kinds(self, client: TestClient) -> None:
+        resp = client.get(
+            "/nodes/search", params={"q": "o", "kind": "eu_seaport,destination_state", "limit": 50}
+        )
+
+        kinds = {r["kind"] for r in resp.json()}
+        assert kinds == {"eu_seaport", "destination_state"}
+
     def test_search_with_limit(self, client: TestClient) -> None:
         resp = client.get("/nodes/search", params={"q": "a", "limit": 2})
         assert resp.status_code == 200

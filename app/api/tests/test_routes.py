@@ -305,3 +305,37 @@ class TestDisruptions:
         resp = client.get("/disruptions")
         assert resp.status_code == 200
         assert isinstance(resp.json(), list)
+
+
+class TestEuPortDestination:
+    def test_bangladesh_to_rotterdam_is_a_single_sea_leg(self, client: TestClient) -> None:
+        resp = client.get("/routes", params={"origin": "BGD", "destination": "eu_seaport:NLRTM"})
+
+        data = resp.json()
+        assert resp.status_code == 200
+        assert len(data["vessel_direct"]) == 1
+        route = data["vessel_direct"][0]
+        assert [leg["to_name"] for leg in route["legs"]] == ["Rotterdam"]
+        assert route["total_km"] == 15000.0
+        assert "suez" in route["passages"]
+        assert data["air"] == [] and data["truck"] == [] and data["rail"] == []
+
+    def test_red_sea_closure_lengthens_the_route_and_drops_suez(self, client: TestClient) -> None:
+        resp = client.get(
+            "/routes",
+            params={
+                "origin": "BGD",
+                "destination": "eu_seaport:NLRTM",
+                "compare_scenario": "red_sea_closed",
+            },
+        )
+
+        entry = resp.json()["comparison"]["vessel_direct"][0]
+        assert entry["compare"]["total_km"] == 19500.0
+        assert "suez" not in entry["compare"]["passages"]
+        assert entry["delta_wtw_kg_co2e_per_t"] > 0
+
+    def test_port_is_searchable_as_a_destination(self, client: TestClient) -> None:
+        resp = client.get("/nodes/search", params={"q": "Rotterdam", "kind": "eu_seaport"})
+
+        assert [r["node_id"] for r in resp.json()] == ["eu_seaport:NLRTM"]

@@ -366,6 +366,15 @@ erDiagram
     numeric population
     bigint cities
   }
+  dim_eu_ports {
+    text locode PK
+    text iso2
+    text iso3
+    text name
+    numeric lat
+    numeric lon
+    text location_method
+  }
   dim_nodes {
     text node_id PK
     text kind
@@ -388,6 +397,7 @@ erDiagram
   dim_census_air_ports ||..o| dim_nodes : "air_gateway"
   dim_mexico_plants ||..o| dim_nodes : "mexico_plant"
   dim_destination_states ||..|| dim_nodes : "destination_state"
+  dim_eu_ports ||..|| dim_nodes : "eu_seaport"
 ```
 
 - `dim_departure_ports`: Ports the main sea leg to the US starts from: Climate TRACE start ports in the origin countries that container ships sailed from to the US (`is_us_departure`), the hub ports the feeder origins' container ships sail to (`is_feeder_hub`), and the feeder origin ports themselves (`is_feeder_origin`) — the ports feeder voyages depart from, in countries with no direct US service. A port can hold multiple roles and is placed by its US departures when available.
@@ -395,7 +405,8 @@ erDiagram
 - `dim_mexico_plants`: DENUE establishments in the case industries whose employee band starts at or above `mexico_sites.min_employees`, one per industry and location.
 - `map_crossing_plant`: The nearest large plant, by great-circle distance, for each border crossing and HS-6 code with overland imports, among codes whose industries DENUE covers.
 - `dim_destination_states`: US states of destination with case imports, each at the GeoNames town nearest the population-weighted centre of its cities.
-- `dim_nodes`: Every place a leg starts or ends: departure ports and airports, US arrival seaports, air gateways and border crossings, Mexican plants and US destination states.
+- `dim_eu_ports`: EU seaports that are destinations, chosen in `config/eu_ports.yaml` and listed in `seed_eu_ports` from the UN/LOCODE code list (`shockt ref unlocode`). Each is at its UN/LOCODE coordinates or, where the list has none, at the matching GeoNames city.
+- `dim_nodes`: Every place a leg starts or ends: departure ports and airports, US arrival seaports, air gateways and border crossings, Mexican plants, US destination states and EU seaports.
 
 ## Node weights and distances
 
@@ -478,7 +489,7 @@ erDiagram
 
 - `fct_node_weights_monthly`: Case tonnage each node carries by month, origin country, HS-6 and mode, with a low–high range where the tonnage is estimated.
 - `agg_observed_sea_distances_monthly`: Observed sea distance by month, origin country and US arrival seaport, from container voyages ending within `arrival_ports.voyage_radius_km` of the port.
-- `seed_sea_distances`: searoute distances from departure ports to arrival seaports, per scenario (`shockt ref sea-distances`).
+- `seed_sea_distances`: searoute distances from departure ports to US arrival seaports and EU seaports, per scenario (`shockt ref sea-distances`).
 - `seed_air_distances`: Geodesic distances from departure airports to air gateways (`shockt ref air-distances`).
 - `seed_road_distances`: openrouteservice heavy-vehicle distances for truck legs (`shockt ref road-distances`).
 - `seed_rail_distances`: Shortest-track distances for rail legs on the BTS North American Rail Network (`shockt ref rail-distances`).

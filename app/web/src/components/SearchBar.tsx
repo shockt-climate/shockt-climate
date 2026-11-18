@@ -81,10 +81,10 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
         />
         <NodeAutocomplete
           label="Destination"
-          kind="destination_state"
+          kind="destination_state,eu_seaport"
           value={destinationNode}
           onChange={setDestinationNode}
-          placeholder="State name or code (e.g. Texas, CA)..."
+          placeholder="US state (e.g. Texas, CA) or EU port (e.g. Rotterdam)..."
         />
         <label>
           Cargo (tonnes)

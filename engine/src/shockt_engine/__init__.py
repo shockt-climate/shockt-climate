@@ -40,6 +40,7 @@ from shockt_engine.routing import (
     RouteLeg,
     RouteOptions,
     deduplicate_port_clusters,
+    enumerate_port_routes,
     enumerate_routes,
 )
 from shockt_engine.shares import (
@@ -90,6 +91,7 @@ __all__ = [
     "break_even_km",
     "deduplicate_port_clusters",
     "diversion_rate",
+    "enumerate_port_routes",
     "enumerate_routes",
     "lane_intensity",
     "lane_legs",

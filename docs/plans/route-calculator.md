@@ -136,6 +136,20 @@ All options have sensible defaults, so the simplest query is just `(origin, dest
 
 The calculator carries `duration_h: float | None` on each leg. `total_duration_h` on a route is null if any leg's duration is null — summing known legs would produce misleadingly small totals (e.g. 0.2h for a multi-day trip). When the total is null, the front end shows per-leg durations individually (e.g. "Ocean: ~400h | Rail inland: unknown") rather than hiding all time information. Each leg's `duration_h` is always present in the response.
 
+### 1.1.1 EU seaport destinations
+
+A destination can also be an EU seaport (`eu_seaport` node, for example `eu_seaport:NLRTM`), which lets the calculator cover Asia → Europe corridors such as the Bangladesh → EU Red Sea case.
+
+| Mode | Legs |
+|---|---|
+| vessel (direct) | departure\_port →(ocean)→ eu\_seaport |
+
+The route ends at the port: there is no inland leg, no feeder hub, and no air, truck or rail route, so a request with an EU port destination returns vessel routes only. `enumerate_port_routes` builds them from `seed_sea_distances`, which carries the same scenarios as the US routes, so the `red_sea_closed` comparison gives the Suez versus Cape delta and each leg lists the passages it crosses.
+
+**Where the ports come from.** `config/eu_ports.yaml` lists the ports by UN/LOCODE. `shockt ref unlocode` archives UNECE's UN/LOCODE code list and writes `seed_eu_ports.csv` with each port's name and coordinates, failing if a code is not an EU port in the list. `dim_eu_ports` places a port the list gives no coordinates for at the most populous GeoNames city of the same country and name (`geonames_cities.countries` therefore includes the EU-27). `shockt ref sea-distances` measures every departure port to every EU port under every scenario.
+
+**Limits.** Only the configured ports are destinations. Every departure port is paired with every EU port, including ports a container ship would not call at. Feeder routes through a hub to the EU are not enumerated. The route stops at the port, so the inland leg to a destination in Europe is not counted.
+
 ### 1.2 Layer 2 — Disruption annotation
 
 A thin layer that reads the `dim_disruptions` table (which passages are currently affected) and annotates each route:
@@ -419,7 +433,7 @@ Autocomplete for origin/destination selection.
 | Parameter | Type | Description |
 |---|---|---|
 | `q` | string | Search term (matches node name, country name, ISO code) |
-| `kind` | string, optional | Filter by node kind (departure\_port, destination\_state, etc.) |
+| `kind` | string, optional | Filter by node kind (departure\_port, destination\_state, etc.); several kinds may be given, separated by commas |
 | `limit` | int, default 20 | Max results |
 
 Returns: `[{node_id, kind, name, iso3, lat, lon}]`

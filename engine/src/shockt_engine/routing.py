@@ -441,6 +441,56 @@ def enumerate_routes(
     return routes
 
 
+def enumerate_port_routes(
+    origin_country: str,
+    destination_port: str,
+    nodes: Mapping[str, Node],
+    distances: RouteDistances,
+    factors: Iterable[Factor],
+    factor_choices: LegFactors,
+    options: RouteOptions | None = None,
+    origin_node: str | None = None,
+) -> list[Route]:
+    """Enumerate the vessel routes from an origin country's departure ports to the `eu_seaport`
+    node `destination_port`, one sea leg each. The route ends at the port: there is no inland leg,
+    and no other mode or feeder hub is modelled."""
+    if options is None:
+        options = RouteOptions()
+    if options.modes is not None and "vessel" not in options.modes:
+        return []
+    destination = nodes.get(destination_port)
+    if destination is None or destination.kind != "eu_seaport":
+        return []
+
+    ocean_ttw, ocean_wtt = _resolve_factor(
+        list(factors), "ocean", factor_choices, options.vehicle_overrides
+    )
+    routes: list[Route] = []
+    for dep, node in nodes.items():
+        if node.kind != "departure_port" or node.iso3 != origin_country:
+            continue
+        if origin_node and dep != origin_node:
+            continue
+        sea_edge = distances.sea.get((dep, destination_port), {}).get(options.scenario)
+        if sea_edge is None:
+            continue
+        leg = RouteLeg(
+            name=f"{node.name} → {destination.name}",
+            from_node=dep,
+            to_node=destination_port,
+            network="sea",
+            factor_mode="ocean",
+            km=sea_edge.km,
+            duration_h=sea_edge.km / SEA_SPEED_KMH,
+            ttw_kg_co2e_per_tkm=ocean_ttw,
+            wtt_kg_co2e_per_tkm=ocean_wtt,
+            passages=sea_edge.passages,
+        )
+        routes.append(_build_route("vessel", [leg], options.scenario))
+    routes.sort(key=lambda r: r.total_wtw_kg_co2e_per_t)
+    return routes
+
+
 def _plants_for_crossing(
     crossing: str,
     nodes: Mapping[str, Node],

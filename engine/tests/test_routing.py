@@ -8,6 +8,7 @@ from shockt_engine import (
     RouteDistances,
     RouteOptions,
     deduplicate_port_clusters,
+    enumerate_port_routes,
     enumerate_routes,
     load_leg_factors,
 )
@@ -420,3 +421,67 @@ def test_passage_union_across_legs() -> None:
         route = feeder_to_ny[0]
         assert "babalmandab" in route.passages
         assert "suez" in route.passages
+
+
+EU_NODES: dict[str, Node] = {
+    **NODES,
+    "eu_seaport:NLRTM": Node("eu_seaport", "Rotterdam", "NLD", 51.92, 4.50, "NLRTM"),
+}
+EU_DISTANCES = RouteDistances(
+    sea={
+        ("departure_port:BGD_CTG", "eu_seaport:NLRTM"): {
+            "open": EdgeDistance(km=15000.0, duration_h=None, passages=("babalmandab", "suez")),
+            "red_sea_closed": EdgeDistance(km=19500.0, duration_h=None, passages=("south_africa",)),
+        },
+    },
+    air={},
+    road={},
+    rail={},
+    feeder={},
+)
+
+
+def test_port_route_ends_at_the_port_with_one_sea_leg() -> None:
+    routes = enumerate_port_routes(
+        "BGD", "eu_seaport:NLRTM", EU_NODES, EU_DISTANCES, FACTORS, CHOICES
+    )
+
+    assert len(routes) == 1
+    route = routes[0]
+    assert route.mode == "vessel"
+    assert [leg.to_node for leg in route.legs] == ["eu_seaport:NLRTM"]
+    assert route.total_km == 15000.0
+    assert route.passages == ("babalmandab", "suez")
+    assert route.total_wtw_kg_co2e_per_t == pytest.approx(15000.0 * (0.0131 + 0.0027))
+
+
+def test_port_route_is_longer_and_leaves_the_red_sea_when_it_is_closed() -> None:
+    open_route, *_ = enumerate_port_routes(
+        "BGD", "eu_seaport:NLRTM", EU_NODES, EU_DISTANCES, FACTORS, CHOICES
+    )
+    closed_route, *_ = enumerate_port_routes(
+        "BGD",
+        "eu_seaport:NLRTM",
+        EU_NODES,
+        EU_DISTANCES,
+        FACTORS,
+        CHOICES,
+        options=RouteOptions(scenario="red_sea_closed"),
+    )
+
+    assert closed_route.total_km > open_route.total_km
+    assert "suez" not in closed_route.passages
+    assert closed_route.total_wtw_kg_co2e_per_t > open_route.total_wtw_kg_co2e_per_t
+
+
+def test_port_routes_are_empty_for_other_modes_origins_and_non_eu_destinations() -> None:
+    args = (EU_NODES, EU_DISTANCES, FACTORS, CHOICES)
+
+    assert enumerate_port_routes("CHN", "eu_seaport:NLRTM", *args) == []
+    assert enumerate_port_routes("BGD", "arrival_seaport:LA", *args) == []
+    assert (
+        enumerate_port_routes(
+            "BGD", "eu_seaport:NLRTM", *args, options=RouteOptions(modes=frozenset({"air"}))
+        )
+        == []
+    )

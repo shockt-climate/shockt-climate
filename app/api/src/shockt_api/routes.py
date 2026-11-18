@@ -6,6 +6,7 @@ from shockt_engine import (
     Route,
     RouteOptions,
     deduplicate_port_clusters,
+    enumerate_port_routes,
     enumerate_routes,
     load_leg_factors,
 )
@@ -168,7 +169,9 @@ def get_routes(
 
     destination_state = destination.upper()
     destination_node: str | None = None
-    if not (len(destination) == 2 and destination.isalpha()):
+    destination_obj = data.nodes.get(destination)
+    eu_port = destination_obj is not None and destination_obj.kind == "eu_seaport"
+    if not eu_port and not (len(destination) == 2 and destination.isalpha()):
         if destination in data.nodes:
             destination_node = destination
             destination_state = data.nodes[destination].source_key
@@ -191,19 +194,33 @@ def get_routes(
 
     nodes = _dedup_ports(data, origin_country)
 
-    all_routes = enumerate_routes(
-        origin_country=origin_country,
-        destination_state=destination_state,
-        nodes=nodes,
-        distances=data.distances,
-        factors=data.factors,
-        factor_choices=_factor_choices,
-        crossing_plants=data.crossing_plants,
-        options=options,
-        origin_node=origin_node,
-        destination_node=destination_node,
-        hs6=hs6,
-    )
+    def enumerate_for(scenario_options: RouteOptions) -> list[Route]:
+        if eu_port:
+            return enumerate_port_routes(
+                origin_country=origin_country,
+                destination_port=destination,
+                nodes=nodes,
+                distances=data.distances,
+                factors=data.factors,
+                factor_choices=_factor_choices,
+                options=scenario_options,
+                origin_node=origin_node,
+            )
+        return enumerate_routes(
+            origin_country=origin_country,
+            destination_state=destination_state,
+            nodes=nodes,
+            distances=data.distances,
+            factors=data.factors,
+            factor_choices=_factor_choices,
+            crossing_plants=data.crossing_plants,
+            options=scenario_options,
+            origin_node=origin_node,
+            destination_node=destination_node,
+            hs6=hs6,
+        )
+
+    all_routes = enumerate_for(options)
 
     comparison = None
     if compare_scenario:
@@ -213,19 +230,7 @@ def get_routes(
             inland_mode=inland_mode,
             vehicle_overrides=vehicle_overrides,
         )
-        compare_routes = enumerate_routes(
-            origin_country=origin_country,
-            destination_state=destination_state,
-            nodes=nodes,
-            distances=data.distances,
-            factors=data.factors,
-            factor_choices=_factor_choices,
-            crossing_plants=data.crossing_plants,
-            options=compare_options,
-            origin_node=origin_node,
-            destination_node=destination_node,
-            hs6=hs6,
-        )
+        compare_routes = enumerate_for(compare_options)
         comparison = _build_comparison(
             all_routes, compare_routes, nodes, cargo_t, limit, scenario, compare_scenario
         )

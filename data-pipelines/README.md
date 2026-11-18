@@ -414,6 +414,12 @@ erDiagram
     float lat
     float lon
   }
+  dim_eu_ports {
+    text locode PK
+    text name
+    float lat
+    float lon
+  }
   dim_nodes {
     text node_id PK "kind:source_key"
     text kind
@@ -471,6 +477,7 @@ erDiagram
   dim_departure_airports ||--|| dim_nodes : "departure_airport"
   dim_mexico_plants ||--|| dim_nodes : "mexico_plant"
   dim_destination_states ||--|| dim_nodes : "destination_state"
+  dim_eu_ports ||--|| dim_nodes : "eu_seaport"
   dim_mexico_plants ||--o{ map_crossing_plant : "plant_id"
   dim_nodes ||--o{ fct_node_weights_monthly : "node_id"
   dim_nodes ||--o{ agg_observed_sea_distances_monthly : "arrival seaport"
