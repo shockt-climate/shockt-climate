@@ -23,9 +23,8 @@ def _seed_schema(conn: psycopg.Connection[tuple]) -> None:
     conn.execute("""
         create table core.dim_country (
             census_cty_code text primary key,
-            iso3 text,
-            iso2 text,
-            country_name text
+            cty_name text,
+            iso3 text
         )
     """)
 
@@ -101,14 +100,17 @@ def _seed_schema(conn: psycopg.Connection[tuple]) -> None:
 
     conn.execute("""
         create table core.agg_feeder_hub_shares_monthly (
-            year_month date,
+            month date,
             origin_iso3 text,
-            origin_port_id text,
+            start_port_id text,
             hub_port_id text,
+            hub_port text,
             hub_iso3 text,
-            hub_has_us_voyages boolean,
-            weighted_mean_distance_km numeric,
-            share numeric
+            n_voyages bigint,
+            share numeric,
+            median_distance_km numeric,
+            mean_duration_h numeric,
+            hub_has_us_voyages boolean
         )
     """)
 
@@ -166,10 +168,10 @@ def _seed_test_data(conn: psycopg.Connection[tuple]) -> None:
     """Insert minimal realistic data for test scenarios."""
     # Countries
     conn.execute(
-        "insert into core.dim_country (census_cty_code, iso3, iso2, country_name) values "
-        "('5010', 'BGD', 'BD', 'Bangladesh'), "
-        "('5700', 'CHN', 'CN', 'China'), "
-        "('2010', 'MEX', 'MX', 'Mexico')"
+        "insert into core.dim_country (census_cty_code, cty_name, iso3) values "
+        "('5010', 'Bangladesh', 'BGD'), "
+        "('5700', 'China', 'CHN'), "
+        "('2010', 'Mexico', 'MEX')"
     )
 
     # Nodes: departure ports, seaports, airports, gateways, states, crossings, plants
@@ -181,6 +183,7 @@ def _seed_test_data(conn: psycopg.Connection[tuple]) -> None:
         ("arrival_seaport:0401", "arrival_seaport", "New York", "USA", 40.68, -74.04, "0401"),
         ("departure_airport:DAC", "departure_airport", "Dhaka", "BGD", 23.84, 90.40, "DAC"),
         ("air_gateway:LAX", "air_gateway", "Los Angeles", "USA", 33.94, -118.41, "LAX"),
+        ("eu_seaport:NLRTM", "eu_seaport", "Rotterdam", "NLD", 51.92, 4.50, "NLRTM"),
         ("destination_state:TX", "destination_state", "Texas", "USA", 31.0, -100.0, "TX"),
         ("destination_state:CA", "destination_state", "California", "USA", 36.78, -119.42, "CA"),
         ("border_crossing:2304", "border_crossing", "Laredo", "MEX", 27.50, -99.51, "2304"),
@@ -219,6 +222,8 @@ def _seed_test_data(conn: psycopg.Connection[tuple]) -> None:
         (bgd_100, bgd_la, "open", 18950, bsg),
         (bgd_100, bgd_ny, "open", 15500, bsg),
         (bgd_100, bgd_la, "suez_closed", 22400, "babalmandab|gibraltar"),
+        (bgd_100, "eu_seaport:NLRTM", "open", 15000, "babalmandab|suez|gibraltar"),
+        (bgd_100, "eu_seaport:NLRTM", "red_sea_closed", 19500, "south_africa|gibraltar"),
         (chn_200, bgd_la, "open", 11600, ""),
         (chn_200, bgd_ny, "open", 19200, "panama"),
         (chn_200, bgd_ny, "panama_closed", 22100, "suez|gibraltar"),
