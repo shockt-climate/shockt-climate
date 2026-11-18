@@ -68,6 +68,8 @@ export function RouteMap({ data, selectedIndex }: Props): JSX.Element {
         for (let i = 0; i < routes.length; i++) {
           const isSelected =
             selectedIndex?.category === cat && selectedIndex.index === i;
+          // A route is selected: draw only that one. Otherwise draw all.
+          if (selectedIndex && !isSelected) continue;
           for (const leg of routes[i].legs) {
             allLegs.push({ leg, highlight: isSelected });
           }
