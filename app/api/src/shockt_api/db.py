@@ -28,7 +28,8 @@ class CachedData:
 
 def _load_nodes(conn: psycopg.Connection[tuple]) -> dict[str, Node]:
     rows = conn.execute(
-        "select node_id, kind, name, iso3, lat, lon, source_key from core.dim_nodes"
+        "select node_id, kind, coalesce(name, source_key) as name, iso3, lat, lon, source_key"
+        " from core.dim_nodes"
     ).fetchall()
     return {
         r[0]: Node(kind=r[1], name=r[2], iso3=r[3], lat=r[4], lon=r[5], source_key=r[6])
@@ -250,7 +251,7 @@ def search_nodes(
     state_code = _US_STATE_NAMES.get(q.strip().lower())
 
     sql = (
-        "select n.node_id, n.kind, n.name, n.iso3, n.lat, n.lon "
+        "select n.node_id, n.kind, coalesce(n.name, n.source_key) as name, n.iso3, n.lat, n.lon "
         "from core.dim_nodes n "
         "left join core.dim_country c on c.iso3 = n.iso3 "
         "where (n.name ilike %(pattern)s or n.iso3 ilike %(pattern)s "
