@@ -12,7 +12,13 @@ import typer
 
 from shockt import dbt, http, manifest
 from shockt.archive import NeonArchive, object_key
-from shockt.config import eu_reporters_config, hs_codes_config, origins_config, sources_config
+from shockt.config import (
+    eu_ports_config,
+    eu_reporters_config,
+    hs_codes_config,
+    origins_config,
+    sources_config,
+)
 from shockt.db import connect
 from shockt.http import make_client
 from shockt.loading import ParsedSource, Target
@@ -27,6 +33,7 @@ from shockt.reference import (
     rail_distances,
     road_distances,
     sea_distances,
+    unlocode,
 )
 from shockt.settings import PROJECT_ROOT, get_settings
 from shockt.sources import (
@@ -978,6 +985,27 @@ def ref_census_schedules() -> None:
     typer.echo(f"seed_census_ports.csv: {len(ports)} ports")
 
 
+@ref_app.command("unlocode")
+def ref_unlocode() -> None:
+    """Download and archive UN/LOCODE; write seed_eu_ports.csv from config/eu_ports.yaml."""
+    url = sources_config().unlocode.url
+    archive = NeonArchive(get_settings())
+    fetched = date.today().isoformat()
+    with make_client(timeout_seconds=300) as client:
+        body = http.get(client, url, {}).content
+    key = object_key("reference_unlocode", fetched, url.rsplit("/", 1)[-1])
+    archive.put(key, body, "application/zip")
+    typer.echo(f"{len(body):,} bytes archived at {key}")
+    ports = unlocode.select_ports(
+        unlocode.code_list_rows(body), eu_ports_config().ports, eu_reporters_config().reporters
+    )
+    unlocode.write_seed(
+        ports, SEEDS_DIR / "seed_eu_ports.csv", f"UN/LOCODE latest release, fetched {fetched}"
+    )
+    unplaced = [p.locode for p in ports if p.lat is None]
+    typer.echo(f"seed_eu_ports.csv: {len(ports)} ports; placed by GeoNames in dbt: {unplaced}")
+
+
 @app.command()
 def build() -> None:
     """Install dbt packages, then seed, build and test the core schema."""
@@ -1070,18 +1098,20 @@ FROM_ARCHIVE_KEY_OPTION = typer.Option(
 
 @ref_app.command("sea-distances")
 def ref_sea_distances() -> None:
-    """Write seed_sea_distances.csv: searoute distances from departure ports to arrival seaports,
-    under every scenario in config/sources.yaml."""
+    """Write seed_sea_distances.csv: searoute distances from departure ports to US arrival seaports
+    and EU seaports, under every scenario in config/sources.yaml."""
     config = sources_config().distances.sea
     sea_distances.check_scenarios(config.scenarios, sea_distances.known_passages())
     with node_pairs.connect_core(get_settings()) as conn:
         pairs = node_pairs.shared_origin_pairs(
             conn, ["departure_port"], ["vessel"], ["arrival_seaport"], ["vessel"]
         )
-    rows = sea_distances.measure(pairs, config.scenarios)
+        eu_pairs = node_pairs.eu_port_pairs(conn)
+    rows = sea_distances.measure([*pairs, *eu_pairs], config.scenarios)
     sea_distances.write_seed(rows, SEEDS_DIR / "seed_sea_distances.csv")
     typer.echo(
-        f"seed_sea_distances.csv: {len(pairs):,} port pairs × {len(config.scenarios)} scenarios"
+        f"seed_sea_distances.csv: {len(pairs):,} US and {len(eu_pairs):,} EU port pairs × "
+        f"{len(config.scenarios)} scenarios"
     )
 
 

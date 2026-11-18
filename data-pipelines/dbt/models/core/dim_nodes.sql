@@ -1,7 +1,8 @@
 /*
 Every place a leg starts or ends, one row per node, from the location models: departure ports and
 airports in the origin countries, US arrival seaports, air gateways and border crossings, the
-Mexican plants crossings' legs start at, and US destination states. `node_id` is the kind and the
+Mexican plants crossings' legs start at, US destination states, and the EU seaports that are
+destinations. `node_id` is the kind and the
 key in the source it came from. Only nodes with coordinates are kept.
 */
 with vessel_ports as (
@@ -98,6 +99,19 @@ nodes as (
         'denue'
     from {{ ref('dim_mexico_plants') }} as plant
     where plant.plant_id in (select plant_id from {{ ref('map_crossing_plant') }})
+
+    union all
+
+    select
+        'eu_seaport',
+        locode,
+        name,
+        iso3,
+        lat,
+        lon,
+        null,
+        location_method
+    from {{ ref('dim_eu_ports') }}
 
     union all
 

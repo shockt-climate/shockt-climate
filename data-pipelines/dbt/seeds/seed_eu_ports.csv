@@ -1,0 +1,8 @@
+locode,iso2,iso3,name,name_wo_diacritics,lat,lon,source
+NLRTM,NL,NLD,Rotterdam,Rotterdam,51.9167,4.5000,"UN/LOCODE latest release, fetched 2026-11-18"
+BEANR,BE,BEL,Antwerpen,Antwerpen,51.2167,4.4167,"UN/LOCODE latest release, fetched 2026-11-18"
+DEHAM,DE,DEU,Hamburg,Hamburg,53.5167,9.9333,"UN/LOCODE latest release, fetched 2026-11-18"
+DEBRV,DE,DEU,Bremerhaven,Bremerhaven,53.5333,8.6000,"UN/LOCODE latest release, fetched 2026-11-18"
+FRLEH,FR,FRA,Le Havre,Le Havre,49.5000,0.1000,"UN/LOCODE latest release, fetched 2026-11-18"
+GRPIR,GR,GRC,Piraeus,Piraeus,37.9333,23.6167,"UN/LOCODE latest release, fetched 2026-11-18"
+ESVLC,ES,ESP,Valencia,Valencia,,,"UN/LOCODE latest release, fetched 2026-11-18"

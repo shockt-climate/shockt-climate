@@ -88,6 +88,21 @@ def shared_origin_pairs(
     return [NodePair(Node(*row[:5]), Node(*row[5:])) for row in rows]
 
 
+def eu_port_pairs(conn: psycopg.Connection) -> list[NodePair]:
+    """Each departure port and each EU seaport, the pairs of the sea legs to the EU."""
+    rows = conn.execute(
+        """
+        select o.node_id, o.lat, o.lon, o.name, o.coast_region,
+               d.node_id, d.lat, d.lon, d.name, d.coast_region
+        from core.dim_nodes as o
+        cross join core.dim_nodes as d
+        where o.kind = 'departure_port' and d.kind = 'eu_seaport'
+        order by 1, 6
+        """
+    ).fetchall()
+    return [NodePair(Node(*row[:5]), Node(*row[5:])) for row in rows]
+
+
 def plant_crossing_pairs(conn: psycopg.Connection) -> list[NodePair]:
     """Each Mexican plant and the crossing whose leg starts at it (`map_crossing_plant`)."""
     rows = conn.execute(

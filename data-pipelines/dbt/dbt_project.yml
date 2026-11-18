@@ -32,6 +32,8 @@ seeds:
       +column_types: {census_cty_code: text, cty_name: text, iso2: text, iso3: text, source: text}
     seed_census_ports:
       +column_types: {port_code: text, port_name: text, district_code: text, source: text}
+    seed_eu_ports:
+      +column_types: {locode: text, iso2: text, iso3: text, name: text, name_wo_diacritics: text, lat: numeric, lon: numeric, source: text}
     seed_hs_case_codes:
       +column_types: {hs_prefix: text, cases: text, source: text}
     seed_sea_distances:

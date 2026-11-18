@@ -259,6 +259,23 @@ class SbtiConfig(ConfigModel):
     publication: str
 
 
+class UnlocodeConfig(ConfigModel):
+    url: str
+    """UNECE's `latest` release of the UN/LOCODE code list, a zip of CSV files."""
+
+
+class EuPortsConfig(ConfigModel):
+    ports: list[str]
+    """UN/LOCODEs of the EU seaports that are destinations."""
+
+    @model_validator(mode="after")
+    def _locodes(self) -> "EuPortsConfig":
+        bad = [code for code in self.ports if not re.fullmatch(r"[A-Z]{2}[A-Z2-9]{3}", code)]
+        if bad or not self.ports or len(set(self.ports)) != len(self.ports):
+            raise ValueError(f"ports must be distinct 5-character UN/LOCODEs: {bad or self.ports}")
+        return self
+
+
 class EuReportersConfig(ConfigModel):
     reporters: list[str]
     """ISO 3166-1 alpha-2 codes of EU member states used as Comext reporters."""
@@ -286,6 +303,7 @@ class SourcesConfig(ConfigModel):
     comext: ComextConfig
     oecd_maritime: OecdMaritimeConfig
     sbti: SbtiConfig
+    unlocode: UnlocodeConfig
     distances: DistancesConfig
 
 
@@ -421,6 +439,11 @@ def origins_config() -> OriginsConfig:
 @cache
 def eu_reporters_config() -> EuReportersConfig:
     return EuReportersConfig.model_validate(_load_yaml(CONFIG_DIR / "eu_reporters.yaml"))
+
+
+@cache
+def eu_ports_config() -> EuPortsConfig:
+    return EuPortsConfig.model_validate(_load_yaml(CONFIG_DIR / "eu_ports.yaml"))
 
 
 @cache

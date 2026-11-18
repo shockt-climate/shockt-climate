@@ -1,0 +1,12 @@
+# EU seaports that are destinations in the route calculator, by UN/LOCODE. `shockt ref unlocode`
+# writes each one's name and coordinates from the UN/LOCODE code list into
+# dbt/seeds/seed_eu_ports.csv, and fails if a code isn't an EU port in the list. A port without
+# coordinates in the list is placed by GeoNames city in dbt (`dim_eu_ports`).
+ports:
+  - NLRTM  # Rotterdam
+  - BEANR  # Antwerp
+  - DEHAM  # Hamburg
+  - DEBRV  # Bremerhaven
+  - FRLEH  # Le Havre
+  - GRPIR  # Piraeus
+  - ESVLC  # Valencia

@@ -24,8 +24,16 @@ seeds:
       - name: iso3
         data_tests: [not_null]
 
+  - name: seed_eu_ports
+    description: >
+      EU seaports that are destinations, from the UN/LOCODE code list (`shockt ref unlocode`),
+      chosen in `config/eu_ports.yaml`. Coordinates are blank where the list has none.
+    columns:
+      - name: locode
+        data_tests: [unique, not_null]
+
   - name: seed_sea_distances
-    description: searoute distances from departure ports to arrival seaports, per scenario (`shockt ref sea-distances`).
+    description: searoute distances from departure ports to arrival seaports and EU seaports, per scenario (`shockt ref sea-distances`).
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:

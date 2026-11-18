@@ -1,4 +1,4 @@
-"""Sea distances between departure ports and US arrival seaports, for every scenario in
+"""Sea distances from departure ports to US arrival seaports and EU seaports, for every scenario in
 `distances.sea.scenarios` (config/sources.yaml), measured by `searoute` on its maritime network.
 
 Each scenario closes the passages it names. The `open` distances are the fallback where a port has

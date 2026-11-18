@@ -137,7 +137,7 @@ reference_sources:
     url: https://davidmegginson.github.io/ourairports-data/airports.csv
   geonames_cities:
     url: https://download.geonames.org/export/dump/cities5000.zip
-    countries: [US, MX]
+    countries: [US, MX, AT, BE, BG, CY, CZ, DE, DK, EE, ES, FI, FR, GR, HR, HU, IE, IT, LT, LU, LV, MT, NL, PL, PT, RO, SE, SI, SK]
   bts_border_crossings:
     url: https://data.bts.gov/resource/keg4-3bc2.json
     border: US-Mexico Border
@@ -196,6 +196,11 @@ sbti:
   companies_url: https://files.sciencebasedtargets.org/production/files/companies-excel.xlsx
   targets_url: https://files.sciencebasedtargets.org/production/files/targets-excel.xlsx
   publication: https://sciencebasedtargets.org/target-dashboard
+
+unlocode:
+  # UN/LOCODE code list, UNECE's `latest` release (a zip of CSV files). `shockt ref unlocode` reads
+  # the EU ports named in config/eu_ports.yaml from it.
+  url: https://unlocode.unece.org/downloads/unlocode-latest.zip
 
 distances:
   # Generators that write the distance seeds (plan section 6.3), between the node pairs in
