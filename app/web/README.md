@@ -18,17 +18,16 @@ npm install
 
 ### Run
 
-Start both the API and front end together from the repo root:
+From the repo root, start the API and front end together (the database URL is resolved as described in [`app/api/README.md`](../api/README.md)):
 
 ```bash
-DATABASE_URL="postgresql://..." ./dev.sh
+./dev.sh
 ```
 
 Or run the front end alone (requires the API already running on port 8000):
 
 ```bash
-cd app/web
-npm run dev
+./dev.sh web
 ```
 
 Opens at `http://localhost:5173`. The Vite dev server proxies `/api` requests to `http://localhost:8000`.

@@ -19,7 +19,13 @@ uv sync
 
 ### Environment
 
-Export your Neon connection string:
+`./dev.sh` finds the database URL in this order:
+
+1. An exported `DATABASE_URL`.
+2. `DATABASE_URL` in `app/api/.env` (gitignored).
+3. `DBT_DATABASE_URL` in `data-pipelines/.env`, the `shockt_transform` login.
+
+To override it, export a Neon connection string:
 
 ```bash
 export DATABASE_URL="postgresql://user:password@your-neon-host.neon.tech/neondb?sslmode=require"
@@ -27,17 +33,16 @@ export DATABASE_URL="postgresql://user:password@your-neon-host.neon.tech/neondb?
 
 ### Run
 
-Start both the API and front end together from the repo root:
+From the repo root, run the API alone:
 
 ```bash
-DATABASE_URL="postgresql://..." ./dev.sh
+./dev.sh api
 ```
 
-Or run the API alone:
+Or run the API and front end together:
 
 ```bash
-cd app/api
-uv run uvicorn shockt_api.main:app --reload --port 8000
+./dev.sh
 ```
 
 The API is then available at `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
