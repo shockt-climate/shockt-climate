@@ -95,8 +95,10 @@ export function OptionsPanel({
                   min={5}
                   max={50}
                   step={5}
-                  value={collapsePct ?? 25}
-                  onChange={(e) => onCollapsePctChange(Number(e.target.value))}
+                  value={55 - (collapsePct ?? 25)}
+                  onChange={(e) =>
+                    onCollapsePctChange(55 - Number(e.target.value))
+                  }
                 />
                 <span className="slider-label">More</span>
               </div>
