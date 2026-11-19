@@ -1,6 +1,7 @@
 import { useState, type JSX } from "react";
 import type { RouteCategory } from "./types";
 import { SearchBar, type SearchParams } from "./components/SearchBar";
+import { ClusteredRouteList } from "./components/ClusteredRouteList";
 import { RouteList } from "./components/RouteList";
 import { RouteMap } from "./components/RouteMap";
 import { ModeComparison } from "./components/ModeComparison";
@@ -17,6 +18,7 @@ export function App(): JSX.Element {
     category: RouteCategory;
     index: number;
   } | null>(null);
+  const [collapse, setCollapse] = useState(true);
 
   const selected =
     routes.data && selectedRoute
@@ -29,6 +31,7 @@ export function App(): JSX.Element {
 
   function handleSubmit(params: SearchParams) {
     setSelectedRoute(null);
+    setCollapse(params.collapse);
     routes.fetch({
       origin: params.origin,
       destination: params.destination,
@@ -38,6 +41,7 @@ export function App(): JSX.Element {
       scenario: params.scenario,
       compare_scenario: params.compareScenario ?? undefined,
       hs6: params.hs6 ?? undefined,
+      collapse: params.collapse,
     });
   }
 
@@ -77,15 +81,27 @@ export function App(): JSX.Element {
               />
           ) : (
             <div className="results-layout">
-              <RouteList
-                data={routes.data}
-                    selectedIndex={selectedRoute}
-                onSelectRoute={(category, index) =>
-                  setSelectedRoute({ category, index })
-                }
-                disruptedPassages={disruptions.disruptedPassages}
-                paths={paths}
-              />
+              {collapse && routes.data.vessel_direct_clustered != null ? (
+                <ClusteredRouteList
+                  data={routes.data}
+                  selectedIndex={selectedRoute}
+                  onSelectRoute={(category, index) =>
+                    setSelectedRoute({ category, index })
+                  }
+                  disruptedPassages={disruptions.disruptedPassages}
+                  paths={paths}
+                />
+              ) : (
+                <RouteList
+                  data={routes.data}
+                  selectedIndex={selectedRoute}
+                  onSelectRoute={(category, index) =>
+                    setSelectedRoute({ category, index })
+                  }
+                  disruptedPassages={disruptions.disruptedPassages}
+                  paths={paths}
+                />
+              )}
               <div>
                 <RouteMap
                   data={routes.data}

@@ -10,6 +10,8 @@ interface Props {
   onInlandModeChange: (mode: "truck" | "rail") => void;
   hs6: string;
   onHs6Change: (hs6: string) => void;
+  collapse: boolean;
+  onCollapseChange: (v: boolean) => void;
 }
 
 export function OptionsPanel({
@@ -21,6 +23,8 @@ export function OptionsPanel({
   onInlandModeChange,
   hs6,
   onHs6Change,
+  collapse,
+  onCollapseChange,
 }: Props): JSX.Element {
   const [open, setOpen] = useState(false);
 
@@ -66,6 +70,15 @@ export function OptionsPanel({
               placeholder="e.g. 841810"
               maxLength={6}
             />
+          </label>
+
+          <label className="collapse-toggle">
+            <input
+              type="checkbox"
+              checked={collapse}
+              onChange={(e) => onCollapseChange(e.target.checked)}
+            />
+            Group similar routes
           </label>
         </div>
       )}

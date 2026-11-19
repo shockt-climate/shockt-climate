@@ -675,6 +675,61 @@ button[type="submit"]:disabled {
   color: var(--color-text-secondary);
 }
 
+/* Clusters */
+.cluster-group {
+  margin-bottom: 8px;
+  border-left: 3px solid var(--color-border);
+  padding-left: 8px;
+}
+
+.cluster-group--natural {
+  border-left-color: var(--color-primary);
+}
+
+.cluster-group--span,
+.cluster-group--floor {
+  border-left-color: var(--color-border);
+}
+
+.cluster-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.cluster-range {
+  font-weight: 600;
+}
+
+.cluster-toggle {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+.cluster-toggle:hover {
+  text-decoration: underline;
+}
+
+.cluster-alternatives {
+  padding-left: 12px;
+  border-left: 1px dashed var(--color-border);
+  margin-left: 4px;
+}
+
+.collapse-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
 /* Map */
 .route-map {
   border-radius: var(--radius);

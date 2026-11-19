@@ -12,6 +12,8 @@ describe("OptionsPanel", () => {
     onInlandModeChange: vi.fn(),
     hs6: "",
     onHs6Change: vi.fn(),
+    collapse: true,
+    onCollapseChange: vi.fn(),
   };
 
   it("is collapsed by default", () => {

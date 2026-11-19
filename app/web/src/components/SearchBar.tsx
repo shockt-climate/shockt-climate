@@ -15,6 +15,7 @@ export interface SearchParams {
   scenario: string;
   compareScenario: string | null;
   hs6: string | null;
+  collapse: boolean;
 }
 
 interface Props {
@@ -38,6 +39,7 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
     if (compareScenario === next) setCompareScenario(null);
   }
   const [hs6, setHs6] = useState("");
+  const [collapse, setCollapse] = useState(true);
 
   function toggleMode(mode: LaneMode) {
     setModes((prev) => {
@@ -67,6 +69,7 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
       scenario,
       compareScenario,
       hs6: hs6 || null,
+      collapse,
     });
   }
 
@@ -131,6 +134,8 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
         onInlandModeChange={setInlandMode}
         hs6={hs6}
         onHs6Change={setHs6}
+        collapse={collapse}
+        onCollapseChange={setCollapse}
       />
     </form>
   );
