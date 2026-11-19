@@ -5,8 +5,12 @@ from collections.abc import Mapping
 from fastapi import APIRouter, Query
 from shockt_engine import (
     LegFactor,
+    Node,
     Route,
+    RouteCluster,
+    RouteCollapseConfig,
     RouteOptions,
+    cluster_routes,
     deduplicate_port_clusters,
     enumerate_port_routes,
     enumerate_routes,
@@ -17,11 +21,13 @@ from shockt_engine.lanes import LaneMode
 
 from shockt_api.db import CachedData
 from shockt_api.schemas import (
+    ClusteredCategoryResponse,
     ComparisonRoute,
     FactorInfo,
     LegFactorInfo,
     LegResponse,
     QueryEcho,
+    RouteClusterResponse,
     RouteResponse,
     RoutesResponse,
 )
@@ -161,6 +167,28 @@ def _dedup_ports(data: CachedData, origin_country: str) -> dict[str, object]:
     return {nid: n for nid, n in data.nodes.items() if nid not in excluded}
 
 
+def _cluster_to_response(
+    cluster: RouteCluster,
+    nodes: dict[str, Node],
+    cargo_t: float | None,
+    sources: Mapping[str, str],
+) -> RouteClusterResponse:
+    return RouteClusterResponse(
+        rank=cluster.rank,
+        representative_index=cluster.representative_index,
+        routes=[_route_to_response(r, nodes, cargo_t, sources) for r in cluster.routes],
+        emissions_range=(
+            round(cluster.emissions_range[0], 1),
+            round(cluster.emissions_range[1], 1),
+        ),
+        distance_range=(
+            round(cluster.distance_range[0], 1),
+            round(cluster.distance_range[1], 1),
+        ),
+        break_type=cluster.break_type,
+    )
+
+
 @router.get("/routes")
 def get_routes(
     origin: str,
@@ -172,6 +200,7 @@ def get_routes(
     compare_scenario: str | None = None,
     hs6: str | None = None,
     limit: int = Query(default=10, ge=1, le=100),
+    collapse: bool = True,
 ) -> RoutesResponse:
     data = _get_data()
 
@@ -256,7 +285,7 @@ def get_routes(
             all_routes, compare_routes, nodes, cargo_t, sources, limit, scenario, compare_scenario
         )
 
-    buckets: dict[str, list[RouteResponse]] = {
+    raw_buckets: dict[str, list[Route]] = {
         "vessel_direct": [],
         "vessel_feeder": [],
         "air": [],
@@ -264,9 +293,22 @@ def get_routes(
         "rail": [],
     }
     for route in all_routes:
-        cat = _route_category(route)
-        if len(buckets[cat]) < limit:
-            buckets[cat].append(_route_to_response(route, nodes, cargo_t, sources))
+        raw_buckets[_route_category(route)].append(route)
+
+    buckets: dict[str, list[RouteResponse]] = {
+        cat: [_route_to_response(r, nodes, cargo_t, sources) for r in routes[:limit]]
+        for cat, routes in raw_buckets.items()
+    }
+
+    clustered: dict[str, ClusteredCategoryResponse | None] = {cat: None for cat in raw_buckets}
+    if collapse:
+        config = RouteCollapseConfig()
+        for cat, routes in raw_buckets.items():
+            if routes:
+                clusters = cluster_routes(routes, nodes, config)
+                clustered[cat] = ClusteredCategoryResponse(
+                    clusters=[_cluster_to_response(c, nodes, cargo_t, sources) for c in clusters]
+                )
 
     return RoutesResponse(
         vessel_direct=buckets["vessel_direct"],
@@ -274,6 +316,11 @@ def get_routes(
         air=buckets["air"],
         truck=buckets["truck"],
         rail=buckets["rail"],
+        vessel_direct_clustered=clustered["vessel_direct"],
+        vessel_feeder_clustered=clustered["vessel_feeder"],
+        air_clustered=clustered["air"],
+        truck_clustered=clustered["truck"],
+        rail_clustered=clustered["rail"],
         comparison=comparison,
         factors=_build_factor_info(data),
         commodity=None,

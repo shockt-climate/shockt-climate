@@ -1,5 +1,7 @@
 """Pydantic response models for the route calculator API."""
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -101,12 +103,30 @@ class QueryEcho(BaseModel):
     inland_mode: str
 
 
+class RouteClusterResponse(BaseModel):
+    rank: int
+    representative_index: int
+    routes: list[RouteResponse]
+    emissions_range: tuple[float, float]
+    distance_range: tuple[float, float]
+    break_type: Literal["natural", "span", "floor"]
+
+
+class ClusteredCategoryResponse(BaseModel):
+    clusters: list[RouteClusterResponse]
+
+
 class RoutesResponse(BaseModel):
     vessel_direct: list[RouteResponse]
     vessel_feeder: list[RouteResponse]
     air: list[RouteResponse]
     truck: list[RouteResponse]
     rail: list[RouteResponse]
+    vessel_direct_clustered: ClusteredCategoryResponse | None = None
+    vessel_feeder_clustered: ClusteredCategoryResponse | None = None
+    air_clustered: ClusteredCategoryResponse | None = None
+    truck_clustered: ClusteredCategoryResponse | None = None
+    rail_clustered: ClusteredCategoryResponse | None = None
     comparison: dict[str, list[ComparisonRoute]] | None = None
     disruptions: DisruptionAnnotation | None = None
     factors: dict[str, FactorInfo]

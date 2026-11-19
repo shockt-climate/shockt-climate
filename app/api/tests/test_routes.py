@@ -350,3 +350,48 @@ class TestEuPortDestination:
         resp = client.get("/nodes/search", params={"q": "Rotterdam", "kind": "eu_seaport"})
 
         assert [r["node_id"] for r in resp.json()] == ["eu_seaport:NLRTM"]
+
+
+class TestClustering:
+    def test_collapse_returns_clustered_fields(self, client: TestClient) -> None:
+        resp = client.get("/routes", params={"origin": "BGD", "destination": "TX"})
+        data = resp.json()
+        assert data["vessel_direct_clustered"] is not None
+        clusters = data["vessel_direct_clustered"]["clusters"]
+        assert len(clusters) > 0
+        cluster = clusters[0]
+        assert "rank" in cluster
+        assert "representative_index" in cluster
+        assert "routes" in cluster
+        assert "emissions_range" in cluster
+        assert "break_type" in cluster
+        assert len(cluster["routes"]) > 0
+
+    def test_collapse_false_omits_clusters(self, client: TestClient) -> None:
+        resp = client.get(
+            "/routes",
+            params={"origin": "BGD", "destination": "TX", "collapse": "false"},
+        )
+        data = resp.json()
+        assert data["vessel_direct_clustered"] is None
+        assert data["vessel_feeder_clustered"] is None
+        assert data["air_clustered"] is None
+
+    def test_cluster_emissions_range_valid(self, client: TestClient) -> None:
+        resp = client.get("/routes", params={"origin": "BGD", "destination": "TX"})
+        data = resp.json()
+        for cat in ("vessel_direct", "air"):
+            clustered = data[f"{cat}_clustered"]
+            if clustered is None:
+                continue
+            for cluster in clustered["clusters"]:
+                lo, hi = cluster["emissions_range"]
+                assert lo <= hi
+                for route in cluster["routes"]:
+                    assert lo <= route["total_wtw_kg_co2e_per_t"] <= hi
+
+    def test_flat_routes_still_returned(self, client: TestClient) -> None:
+        resp = client.get("/routes", params={"origin": "BGD", "destination": "TX"})
+        data = resp.json()
+        assert len(data["vessel_direct"]) > 0
+        assert data["vessel_direct_clustered"] is not None
