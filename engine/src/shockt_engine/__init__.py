@@ -1,5 +1,12 @@
 """The ShockT Climate emissions engine: pure functions, plain values in and out, no database."""
 
+from shockt_engine.clustering import (
+    DimensionConfig,
+    RouteCluster,
+    RouteCollapseConfig,
+    cluster_nodes_by_proximity,
+    cluster_routes,
+)
 from shockt_engine.decomposition import MixCell, MixDecomposition, mix_decomposition
 from shockt_engine.emissions import (
     EmissionsError,
@@ -61,6 +68,7 @@ from shockt_engine.shocks import (
 )
 
 __all__ = [
+    "DimensionConfig",
     "EdgeDistance",
     "EmissionsError",
     "Factor",
@@ -81,6 +89,8 @@ __all__ = [
     "Node",
     "OutsideRange",
     "Route",
+    "RouteCluster",
+    "RouteCollapseConfig",
     "RouteDistances",
     "RouteLeg",
     "RouteOptions",
@@ -90,6 +100,8 @@ __all__ = [
     "Window",
     "WindowSummary",
     "break_even_km",
+    "cluster_nodes_by_proximity",
+    "cluster_routes",
     "deduplicate_port_clusters",
     "diversion_rate",
     "enumerate_port_routes",
