@@ -165,7 +165,7 @@ Within each structural partition, after the Pareto filter, group the surviving r
 2. Compute gaps between consecutive routes
 3. Mark natural breaks: gaps where gap > gap_ratio × median_gap
 4. Form initial clusters from the breaks
-5. SPLIT pass: while any cluster spans > max_span_pct of the partition's total range,
+5. SPLIT pass: while any cluster spans > max_span_pct of the partition's median value,
      split it at its largest internal gap
 6. FLOOR pass: while total clusters < min_representatives and splittable clusters remain,
      split the widest-spanning cluster at its largest internal gap
@@ -244,7 +244,7 @@ class DimensionConfig:
     """Per-dimension clustering parameters."""
     key: str                # "emissions", "cost", "duration"
     gap_ratio: float        # natural break sensitivity (gap > ratio × median → break)
-    max_span_pct: float     # max cluster width as % of partition range
+    max_span_pct: float     # max cluster width as % of median value
 
 @dataclass(frozen=True)
 class RouteCollapseConfig:
@@ -276,7 +276,7 @@ class RouteCollapseConfig:
 | `arrival_cluster_km` | Proximity threshold for grouping arrival ports within a coast region | 100 km |
 | `dimensions` | Ordered list of active dimensions with per-dimension gap_ratio and max_span_pct | Emissions only |
 | `dimensions[].gap_ratio` | How obvious a jump must be to count as a natural break (higher = fewer breaks) | 3.0 |
-| `dimensions[].max_span_pct` | Max cluster width as % of range; forces separation in uniform distributions | 25.0 |
+| `dimensions[].max_span_pct` | Max cluster width as % of median value; forces separation in uniform distributions | 25.0 |
 | `min_representatives` | Always show at least this many clusters per partition (if enough routes exist) | 1 |
 | `max_representatives` | Hard cap on clusters per partition | None |
 | `max_per_cluster` | Cap alternatives within a cluster | None |
