@@ -167,6 +167,14 @@ def test_clear_gap_produces_natural_break():
     assert result[0].break_type == "natural"
 
 
+def test_tight_spread_skips_span_splitting():
+    """Routes within ~1% of each other should not be span-split."""
+    routes = [_route(294.9), _route(294.9), _route(295.6), _route(295.6), _route(296.6)]
+    result = cluster_routes(routes, NODES)
+    assert len(result) == 1
+    assert len(result[0].routes) == 5
+
+
 def test_uniform_spread_forces_span_splits():
     routes = [_route(100.0 + i * 10) for i in range(10)]
     config = RouteCollapseConfig(

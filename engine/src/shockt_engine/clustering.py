@@ -157,9 +157,11 @@ def _gap_width_cluster(
     break_types.append("natural")
 
     total_span = _cluster_span(routes)
+    median_value = median(r.total_wtw_kg_co2e_per_t for r in routes)
+    span_is_meaningful = median_value > 0 and total_span / median_value > 0.05
     max_span = total_span * dim_config.max_span_pct / 100.0 if total_span > 0 else 0.0
 
-    if max_span > 0:
+    if max_span > 0 and span_is_meaningful:
         changed = True
         while changed:
             changed = False
