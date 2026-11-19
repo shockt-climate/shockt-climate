@@ -18,6 +18,14 @@ class CountryResult(BaseModel):
     modes: list[str]
 
 
+class LegFactorInfo(BaseModel):
+    source: str
+    source_row_id: str
+    variant: str
+    vehicle_type: str | None
+    size_class: str | None
+
+
 class LegResponse(BaseModel):
     name: str
     from_node: str
@@ -34,6 +42,10 @@ class LegResponse(BaseModel):
     duration_h: float | None
     wtw_kg_co2e_per_tkm: float
     wtw_kg_co2e_per_t: float
+    share_of_route: float
+    factor: LegFactorInfo
+    distance_basis: str
+    distance_source: str
     passages: list[str]
 
 
@@ -100,3 +112,4 @@ class RoutesResponse(BaseModel):
     factors: dict[str, FactorInfo]
     commodity: CommodityContext | None = None
     query: QueryEcho
+

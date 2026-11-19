@@ -26,6 +26,16 @@ const validLeg = {
   duration_h: 456,
   wtw_kg_co2e_per_tkm: 0.0158,
   wtw_kg_co2e_per_t: 299.4,
+  share_of_route: 0.56,
+  factor: {
+    source: "uk_desnz",
+    source_row_id: "uk_1",
+    variant: "Container ship / Average",
+    vehicle_type: "container_ship",
+    size_class: "average",
+  },
+  distance_basis: "modelled",
+  distance_source: "searoute 1.6.0",
   passages: ["babalmandab", "suez", "gibraltar"],
 };
 

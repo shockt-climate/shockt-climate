@@ -1,5 +1,7 @@
 """The /routes endpoint: enumerate and score freight routes."""
 
+from collections.abc import Mapping
+
 from fastapi import APIRouter, Query
 from shockt_engine import (
     LegFactor,
@@ -17,6 +19,7 @@ from shockt_api.db import CachedData
 from shockt_api.schemas import (
     ComparisonRoute,
     FactorInfo,
+    LegFactorInfo,
     LegResponse,
     QueryEcho,
     RouteResponse,
@@ -26,6 +29,10 @@ from shockt_api.schemas import (
 router = APIRouter()
 
 _factor_choices = load_leg_factors()
+
+FEEDER_DISTANCE_SOURCE = (
+    "observed feeder voyages, latest month (core.agg_feeder_hub_shares_monthly)"
+)
 
 
 def _get_data() -> CachedData:
@@ -46,6 +53,7 @@ def _route_to_response(
     route: Route,
     nodes: dict[str, object],
     cargo_t: float | None,
+    distance_sources: Mapping[str, str],
 ) -> RouteResponse:
     legs = []
     for leg in route.legs:
@@ -68,6 +76,24 @@ def _route_to_response(
                 duration_h=round(leg.duration_h, 1) if leg.duration_h is not None else None,
                 wtw_kg_co2e_per_tkm=round(leg.wtw_kg_co2e_per_tkm, 6),
                 wtw_kg_co2e_per_t=round(leg.wtw_kg_co2e_per_t, 1),
+                share_of_route=(
+                    round(leg.wtw_kg_co2e_per_t / route.total_wtw_kg_co2e_per_t, 4)
+                    if route.total_wtw_kg_co2e_per_t
+                    else 0.0
+                ),
+                factor=LegFactorInfo(
+                    source=leg.factor.source,
+                    source_row_id=leg.factor.source_row_id,
+                    variant=leg.factor.variant,
+                    vehicle_type=leg.factor.vehicle_type,
+                    size_class=leg.factor.size_class,
+                ),
+                distance_basis=leg.distance_basis,
+                distance_source=(
+                    FEEDER_DISTANCE_SOURCE
+                    if leg.distance_basis == "observed"
+                    else distance_sources.get(leg.network, "")
+                ),
                 passages=list(leg.passages),
             )
         )
@@ -187,6 +213,7 @@ def get_routes(
     )
 
     nodes = _dedup_ports(data, origin_country)
+    sources = data.distance_sources
 
     def enumerate_for(scenario_options: RouteOptions) -> list[Route]:
         if eu_port:
@@ -226,7 +253,7 @@ def get_routes(
         )
         compare_routes = enumerate_for(compare_options)
         comparison = _build_comparison(
-            all_routes, compare_routes, nodes, cargo_t, limit, scenario, compare_scenario
+            all_routes, compare_routes, nodes, cargo_t, sources, limit, scenario, compare_scenario
         )
 
     buckets: dict[str, list[RouteResponse]] = {
@@ -239,7 +266,7 @@ def get_routes(
     for route in all_routes:
         cat = _route_category(route)
         if len(buckets[cat]) < limit:
-            buckets[cat].append(_route_to_response(route, nodes, cargo_t))
+            buckets[cat].append(_route_to_response(route, nodes, cargo_t, sources))
 
     return RoutesResponse(
         vessel_direct=buckets["vessel_direct"],
@@ -266,6 +293,7 @@ def _build_comparison(
     compare_routes: list[Route],
     nodes: dict[str, object],
     cargo_t: float | None,
+    sources: Mapping[str, str],
     limit: int,
     primary_scenario: str,
     compare_scenario: str,
@@ -290,9 +318,9 @@ def _build_comparison(
         path = _node_path(route)
         matched = compare_by_path.pop(path, None)
 
-        primary_resp = _route_to_response(route, nodes, cargo_t)
+        primary_resp = _route_to_response(route, nodes, cargo_t, sources)
         if matched:
-            compare_resp = _route_to_response(matched, nodes, cargo_t)
+            compare_resp = _route_to_response(matched, nodes, cargo_t, sources)
             delta = round(matched.total_wtw_kg_co2e_per_t - route.total_wtw_kg_co2e_per_t, 1)
             result[cat].append(
                 ComparisonRoute(
@@ -315,7 +343,7 @@ def _build_comparison(
         cat = _route_category(route)
         if len(result[cat]) >= limit:
             continue
-        compare_resp = _route_to_response(route, nodes, cargo_t)
+        compare_resp = _route_to_response(route, nodes, cargo_t, sources)
         result[cat].append(
             ComparisonRoute(
                 primary=None,

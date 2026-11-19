@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ComparisonList } from "./ComparisonList";
+import type { LegResponse } from "../api/schemas";
 
-const leg = {
+const leg: LegResponse = {
   name: "A → B",
   from_node: "a",
   to_node: "b",
@@ -18,6 +19,16 @@ const leg = {
   duration_h: 240,
   wtw_kg_co2e_per_tkm: 0.016,
   wtw_kg_co2e_per_t: 160,
+  share_of_route: 1,
+  factor: {
+    source: "uk_desnz",
+    source_row_id: "uk_1",
+    variant: "Container ship / Average",
+    vehicle_type: "container_ship",
+    size_class: "average",
+  },
+  distance_basis: "modelled",
+  distance_source: "searoute 1.6.0",
   passages: [],
 };
 

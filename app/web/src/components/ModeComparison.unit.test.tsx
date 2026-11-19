@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModeComparison } from "./ModeComparison";
-import type { RoutesResponse } from "../api/schemas";
+import type { RouteResponse, RoutesResponse } from "../api/schemas";
 
-const route = {
+const route: RouteResponse = {
   legs: [
     {
       name: "A → B",
@@ -21,6 +21,16 @@ const route = {
       duration_h: 240,
       wtw_kg_co2e_per_tkm: 0.016,
       wtw_kg_co2e_per_t: 160,
+      share_of_route: 1,
+      factor: {
+        source: "uk_desnz",
+        source_row_id: "uk_1",
+        variant: "Container ship / Average",
+        vehicle_type: "container_ship",
+        size_class: "average",
+      },
+      distance_basis: "modelled",
+      distance_source: "searoute 1.6.0",
       passages: [],
     },
   ],

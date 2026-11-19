@@ -1,5 +1,13 @@
 import { Schema } from "effect";
 
+export const LegFactor = Schema.Struct({
+  source: Schema.NonEmptyString,
+  source_row_id: Schema.NonEmptyString,
+  variant: Schema.String,
+  vehicle_type: Schema.NullOr(Schema.String),
+  size_class: Schema.NullOr(Schema.String),
+});
+
 export const LegResponse = Schema.Struct({
   name: Schema.NonEmptyString,
   from_node: Schema.NonEmptyString,
@@ -16,6 +24,10 @@ export const LegResponse = Schema.Struct({
   duration_h: Schema.NullOr(Schema.Number),
   wtw_kg_co2e_per_tkm: Schema.Number,
   wtw_kg_co2e_per_t: Schema.Number,
+  share_of_route: Schema.Number,
+  factor: LegFactor,
+  distance_basis: Schema.Literal("modelled", "observed"),
+  distance_source: Schema.String,
   passages: Schema.Array(Schema.String),
 });
 export type LegResponse = typeof LegResponse.Type;

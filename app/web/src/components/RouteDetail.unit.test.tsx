@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { RouteDetail } from "./RouteDetail";
 import type { RouteResponse } from "../api/schemas";
 
@@ -21,6 +21,16 @@ const mockRoute: RouteResponse = {
       duration_h: 456,
       wtw_kg_co2e_per_tkm: 0.0158,
       wtw_kg_co2e_per_t: 299.4,
+      share_of_route: 0.56,
+      factor: {
+        source: "uk_desnz",
+        source_row_id: "uk_1",
+        variant: "Container ship / Average",
+        vehicle_type: "container_ship",
+        size_class: "average",
+      },
+      distance_basis: "modelled",
+      distance_source: "searoute 1.6.0",
       passages: ["suez"],
     },
     {
@@ -39,6 +49,16 @@ const mockRoute: RouteResponse = {
       duration_h: 22.5,
       wtw_kg_co2e_per_tkm: 0.1073,
       wtw_kg_co2e_per_t: 236.1,
+      share_of_route: 0.44,
+      factor: {
+        source: "uk_desnz",
+        source_row_id: "uk_1",
+        variant: "Container ship / Average",
+        vehicle_type: "container_ship",
+        size_class: "average",
+      },
+      distance_basis: "modelled",
+      distance_source: "searoute 1.6.0",
       passages: [],
     },
   ],
@@ -137,5 +157,53 @@ describe("RouteDetail", () => {
       />
     );
     expect(screen.getByText("19.9 days")).toBeInTheDocument();
+  });
+
+  describe("leg details", () => {
+    function renderRoute(onSelect = vi.fn()) {
+      render(
+        <RouteDetail
+          route={mockRoute}
+          rank={1}
+          selected={false}
+          onSelect={onSelect}
+          disruptedPassages={noDisruptions}
+        />
+      );
+      return onSelect;
+    }
+
+    it("starts collapsed", () => {
+      renderRoute();
+      expect(screen.queryByText("Calculation")).not.toBeInTheDocument();
+    });
+
+    it("expands one leg to show the calculation, factor and distance source", () => {
+      const onSelect = renderRoute();
+      fireEvent.click(screen.getByText("Chittagong → Los Angeles"));
+      expect(screen.getByText("Calculation")).toBeInTheDocument();
+      expect(screen.getByText(/0\.0158 kg CO₂e\/t·km/)).toBeInTheDocument();
+      expect(screen.getByText(/56\.0% of route/)).toBeInTheDocument();
+      expect(screen.getAllByText(/row\s+uk_1/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/searoute 1\.6\.0/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Calculation")).toHaveLength(1);
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it("collapses an expanded leg", () => {
+      renderRoute();
+      const leg = screen.getByText("Chittagong → Los Angeles");
+      fireEvent.click(leg);
+      fireEvent.click(leg);
+      expect(screen.queryByText("Calculation")).not.toBeInTheDocument();
+    });
+
+    it("expands and collapses all legs", () => {
+      renderRoute();
+      fireEvent.click(screen.getByText("Expand all legs"));
+      expect(screen.getAllByText("Calculation")).toHaveLength(2);
+      fireEvent.click(screen.getByText("Collapse all legs"));
+      expect(screen.queryByText("Calculation")).not.toBeInTheDocument();
+    });
   });
 });

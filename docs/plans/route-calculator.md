@@ -163,7 +163,7 @@ The front end uses these annotations to badge routes. The annotation is additive
 The front end combines the calculator's output with the disruption annotations and renders:
 
 - Routes ranked by emissions (lowest first), groupable and filterable by transport mode
-- Per-leg breakdown (mode, distance, emissions, estimated time)
+- Per-leg breakdown (mode, distance, emissions, estimated time). Each leg expands to show its calculation (km × factor = kg CO₂e/t and its share of the route), the emission factor row used, and where its distance comes from (modelled, or observed for feeder legs); "Expand all legs" and "Collapse all legs" act on a whole route
 - Emissions shown as per-tonne and total (when cargo weight provided)
 - Map with legs drawn between node coordinates, colored by mode
 - Disruption badges on affected routes
@@ -513,6 +513,10 @@ Returns:
           "duration_h": 456.0,
           "wtw_kg_co2e_per_tkm": 0.0158,
           "wtw_kg_co2e_per_t": 299.4,
+          "share_of_route": 0.559,
+          "factor": {"source": "uk_desnz", "source_row_id": "…", "variant": "Container ship / Average", "vehicle_type": "container_ship", "size_class": "average"},
+          "distance_basis": "modelled",
+          "distance_source": "searoute 1.6.0",
           "passages": ["babalmandab", "suez", "gibraltar"]
         },
         {
@@ -525,6 +529,10 @@ Returns:
           "duration_h": 22.5,
           "wtw_kg_co2e_per_tkm": 0.1073,
           "wtw_kg_co2e_per_t": 236.1,
+          "share_of_route": 0.441,
+          "factor": {"source": "epa_hub", "source_row_id": "…", "variant": "Medium- and Heavy-Duty Truck", "vehicle_type": "medium_heavy_duty_truck", "size_class": null},
+          "distance_basis": "modelled",
+          "distance_source": "openrouteservice driving-hgv",
           "passages": []
         }
       ],

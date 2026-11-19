@@ -5,6 +5,7 @@ flow), this module enumerates every concrete route and scores each one independe
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from math import asin, cos, radians, sin, sqrt
+from typing import Literal
 
 from shockt_engine.factors import Factor, LegFactor, LegFactors, Mode, select_factor
 from shockt_engine.lanes import InlandMode, LaneMode, Network
@@ -57,8 +58,15 @@ class RouteLeg:
     factor_mode: Mode
     km: float
     duration_h: float | None
-    wtw_kg_co2e_per_tkm: float
+    factor: Factor
     passages: tuple[str, ...]
+    distance_basis: Literal["modelled", "observed"] = "modelled"
+    """Whether the leg's km comes from a distance model or from observed voyages."""
+
+    @property
+    def wtw_kg_co2e_per_tkm(self) -> float:
+        assert self.factor.wtw_kg_co2e_per_tkm is not None
+        return self.factor.wtw_kg_co2e_per_tkm
 
     @property
     def wtw_kg_co2e_per_t(self) -> float:
@@ -98,12 +106,12 @@ def _resolve_factor(
     mode: Mode,
     choices: LegFactors,
     overrides: Mapping[Mode, LegFactor],
-) -> float:
-    """The well-to-wheel factor (kg CO2e per tonne-km) for the given mode."""
+) -> Factor:
+    """The factor row the choice names for the given mode; it has a well-to-wheel value."""
     choice = overrides.get(mode, choices.for_mode(mode))
     f = select_factor(factor_rows, mode, choice)
     assert f.wtw_kg_co2e_per_tkm is not None
-    return f.wtw_kg_co2e_per_tkm
+    return f
 
 
 def _build_route(mode: LaneMode, legs: list[RouteLeg], scenario: str) -> Route:
@@ -167,7 +175,7 @@ def enumerate_routes(
     scenario = options.scenario
     factor_rows = list(factors)
 
-    mode_factors: dict[Mode, tuple[float, float]] = {}
+    mode_factors: dict[Mode, Factor] = {}
     for mode in ("ocean", "air", "truck", "rail"):
         mode_factors[mode] = _resolve_factor(
             factor_rows, mode, factor_choices, options.vehicle_overrides
@@ -203,8 +211,8 @@ def enumerate_routes(
     if active_modes is None or "vessel" in active_modes:
         inland_network: Network = "road" if options.inland_mode == "truck" else "rail"
         inland_mode: Mode = options.inland_mode
-        inland_wtw = mode_factors[inland_mode]
-        ocean_wtw = mode_factors["ocean"]
+        inland_factor = mode_factors[inland_mode]
+        ocean_factor = mode_factors["ocean"]
 
         for dest in dest_nodes:
             for seaport in arrival_seaports:
@@ -222,7 +230,7 @@ def enumerate_routes(
                     factor_mode=inland_mode,
                     km=inland_edge.km,
                     duration_h=inland_edge.duration_h,
-                    wtw_kg_co2e_per_tkm=inland_wtw,
+                    factor=inland_factor,
                     passages=(),
                 )
 
@@ -243,7 +251,7 @@ def enumerate_routes(
                         factor_mode="ocean",
                         km=sea_edge.km,
                         duration_h=sea_edge.km / SEA_SPEED_KMH,
-                        wtw_kg_co2e_per_tkm=ocean_wtw,
+                        factor=ocean_factor,
                         passages=sea_edge.passages,
                     )
                     routes.append(_build_route("vessel", [ocean_leg, inland_leg], scenario))
@@ -270,7 +278,8 @@ def enumerate_routes(
                             factor_mode="ocean",
                             km=feeder_edge.km,
                             duration_h=feeder_edge.duration_h,
-                            wtw_kg_co2e_per_tkm=ocean_wtw,
+                            factor=ocean_factor,
+                            distance_basis="observed",
                             passages=(),
                         )
                         mainline_leg = RouteLeg(
@@ -281,7 +290,7 @@ def enumerate_routes(
                             factor_mode="ocean",
                             km=hub_edge.km,
                             duration_h=hub_edge.km / SEA_SPEED_KMH,
-                            wtw_kg_co2e_per_tkm=ocean_wtw,
+                            factor=ocean_factor,
                             passages=hub_edge.passages,
                         )
                         routes.append(
@@ -290,8 +299,8 @@ def enumerate_routes(
 
     # Air routes
     if active_modes is None or "air" in active_modes:
-        air_wtw = mode_factors["air"]
-        truck_wtw = mode_factors["truck"]
+        air_factor = mode_factors["air"]
+        truck_factor = mode_factors["truck"]
         for dest in dest_nodes:
             for gw in air_gateways:
                 gw_road = distances.road.get((gw, dest))
@@ -306,7 +315,7 @@ def enumerate_routes(
                     factor_mode="truck",
                     km=gw_road.km,
                     duration_h=gw_road.duration_h,
-                    wtw_kg_co2e_per_tkm=truck_wtw,
+                    factor=truck_factor,
                     passages=(),
                 )
 
@@ -323,7 +332,7 @@ def enumerate_routes(
                         factor_mode="air",
                         km=air_edge.km,
                         duration_h=air_edge.km / AIR_SPEED_KMH,
-                        wtw_kg_co2e_per_tkm=air_wtw,
+                        factor=air_factor,
                         passages=(),
                     )
                     routes.append(_build_route("air", [air_leg, gw_leg], scenario))
@@ -335,7 +344,7 @@ def enumerate_routes(
             plant_crossing_map = crossing_plants.get(hs6)
 
         if active_modes is None or "truck" in active_modes:
-            truck_wtw = mode_factors["truck"]
+            truck_factor = mode_factors["truck"]
             for dest in dest_nodes:
                 for cx in border_crossings:
                     cx_road = distances.road.get((cx, dest))
@@ -350,7 +359,7 @@ def enumerate_routes(
                         factor_mode="truck",
                         km=cx_road.km,
                         duration_h=cx_road.duration_h,
-                        wtw_kg_co2e_per_tkm=truck_wtw,
+                        factor=truck_factor,
                         passages=(),
                     )
 
@@ -369,14 +378,14 @@ def enumerate_routes(
                             factor_mode="truck",
                             km=plant_road.km,
                             duration_h=plant_road.duration_h,
-                            wtw_kg_co2e_per_tkm=truck_wtw,
+                            factor=truck_factor,
                             passages=(),
                         )
                         routes.append(_build_route("truck", [plant_leg, cx_leg], scenario))
 
         if active_modes is None or "rail" in active_modes:
-            rail_wtw = mode_factors["rail"]
-            truck_wtw = mode_factors["truck"]
+            rail_factor = mode_factors["rail"]
+            truck_factor = mode_factors["truck"]
             for dest in dest_nodes:
                 for cx in border_crossings:
                     cx_rail = distances.rail.get((cx, dest))
@@ -391,7 +400,7 @@ def enumerate_routes(
                         factor_mode="rail",
                         km=cx_rail.km,
                         duration_h=cx_rail.duration_h,
-                        wtw_kg_co2e_per_tkm=rail_wtw,
+                        factor=rail_factor,
                         passages=(),
                     )
 
@@ -410,7 +419,7 @@ def enumerate_routes(
                             factor_mode="truck",
                             km=plant_road.km,
                             duration_h=plant_road.duration_h,
-                            wtw_kg_co2e_per_tkm=truck_wtw,
+                            factor=truck_factor,
                             passages=(),
                         )
                         routes.append(_build_route("rail", [plant_leg, cx_leg], scenario))
@@ -440,7 +449,9 @@ def enumerate_port_routes(
     if destination is None or destination.kind != "eu_seaport":
         return []
 
-    ocean_wtw = _resolve_factor(list(factors), "ocean", factor_choices, options.vehicle_overrides)
+    ocean_factor = _resolve_factor(
+        list(factors), "ocean", factor_choices, options.vehicle_overrides
+    )
     routes: list[Route] = []
     for dep, node in nodes.items():
         if node.kind != "departure_port" or node.iso3 != origin_country:
@@ -458,7 +469,7 @@ def enumerate_port_routes(
             factor_mode="ocean",
             km=sea_edge.km,
             duration_h=sea_edge.km / SEA_SPEED_KMH,
-            wtw_kg_co2e_per_tkm=ocean_wtw,
+            factor=ocean_factor,
             passages=sea_edge.passages,
         )
         routes.append(_build_route("vessel", [leg], options.scenario))

@@ -24,6 +24,24 @@ class CachedData:
     factors: list[Factor]
     crossing_plants: dict[str, dict[str, str]]
     node_voyages: dict[str, int]
+    distance_sources: dict[str, str]
+    """The source label of each network's distances (`sea`, `air`, `road`, `rail`)."""
+
+
+_SOURCE_TABLES = {
+    "sea": "core.distances_sea",
+    "air": "core.distances_air",
+    "road": "core.distances_road",
+    "rail": "core.distances_rail",
+}
+
+
+def _load_distance_sources(conn: psycopg.Connection[tuple]) -> dict[str, str]:
+    sources: dict[str, str] = {}
+    for network, table in _SOURCE_TABLES.items():
+        rows = conn.execute(f"select distinct source from {table} order by 1").fetchall()
+        sources[network] = "; ".join(r[0] for r in rows if r[0])
+    return sources
 
 
 def _load_nodes(conn: psycopg.Connection[tuple]) -> dict[str, Node]:
@@ -165,6 +183,7 @@ def load_cached_data(database_url: str) -> CachedData:
         factors = _load_factors(conn)
         crossing_plants = _load_crossing_plants(conn)
         node_voyages = _load_node_voyages(conn)
+        distance_sources = _load_distance_sources(conn)
 
     return CachedData(
         nodes=nodes,
@@ -172,6 +191,7 @@ def load_cached_data(database_url: str) -> CachedData:
         factors=factors,
         crossing_plants=crossing_plants,
         node_voyages=node_voyages,
+        distance_sources=distance_sources,
     )
 
 

@@ -327,8 +327,49 @@ button[type="submit"]:disabled {
 .route-leg {
   display: flex;
   gap: 12px;
+  width: 100%;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
   font-size: 0.8rem;
+  text-align: left;
   align-items: baseline;
+  cursor: pointer;
+}
+
+.route-leg-caret {
+  width: 10px;
+  color: var(--color-text-secondary);
+}
+
+.route-legs-toggle {
+  align-self: flex-end;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.route-leg-detail {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 12px;
+  margin: 4px 0 8px 22px;
+  padding: 8px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+}
+
+.route-leg-detail dt {
+  color: var(--color-text-secondary);
+}
+
+.route-leg-detail dd {
+  margin: 0;
 }
 
 .route-leg-mode {

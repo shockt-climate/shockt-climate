@@ -277,6 +277,18 @@ class TestRoutesResponseShape:
         assert ocean["vehicle_type"] == "container_ship"
         assert ocean["wtw"] > 0
 
+    def test_legs_carry_factor_and_distance_detail(self, client: TestClient) -> None:
+        resp = client.get("/routes", params={"origin": "BGD", "destination": "TX"})
+        route = resp.json()["vessel_direct"][0]
+        assert abs(sum(leg["share_of_route"] for leg in route["legs"]) - 1) < 1e-3
+        for leg in route["legs"]:
+            assert leg["factor"]["source"]
+            assert leg["factor"]["source_row_id"]
+            assert leg["distance_basis"] == "modelled"
+            assert leg["distance_source"] == "test"
+            expected = leg["km"] * leg["wtw_kg_co2e_per_tkm"]
+            assert abs(leg["wtw_kg_co2e_per_t"] - expected) < 0.1
+
     def test_query_echo(self, client: TestClient) -> None:
         resp = client.get(
             "/routes",
