@@ -12,6 +12,8 @@ interface Props {
   onHs6Change: (hs6: string) => void;
   collapse: boolean;
   onCollapseChange: (v: boolean) => void;
+  collapsePct: number | null;
+  onCollapsePctChange: (v: number | null) => void;
 }
 
 export function OptionsPanel({
@@ -25,6 +27,8 @@ export function OptionsPanel({
   onHs6Change,
   collapse,
   onCollapseChange,
+  collapsePct,
+  onCollapsePctChange,
 }: Props): JSX.Element {
   const [open, setOpen] = useState(false);
 
@@ -80,6 +84,24 @@ export function OptionsPanel({
             />
             Group similar routes
           </label>
+
+          {collapse && (
+            <label className="granularity-slider">
+              Grouping granularity
+              <div className="slider-row">
+                <span className="slider-label">Fewer</span>
+                <input
+                  type="range"
+                  min={5}
+                  max={50}
+                  step={5}
+                  value={collapsePct ?? 25}
+                  onChange={(e) => onCollapsePctChange(Number(e.target.value))}
+                />
+                <span className="slider-label">More</span>
+              </div>
+            </label>
+          )}
         </div>
       )}
     </div>

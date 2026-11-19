@@ -39,6 +39,7 @@ export interface RoutesParams {
   hs6?: string;
   limit?: number;
   collapse?: boolean;
+  collapse_pct?: number;
 }
 
 export async function fetchRoutes(
@@ -56,6 +57,7 @@ export async function fetchRoutes(
   if (params.hs6) searchParams.set("hs6", params.hs6);
   if (params.limit != null) searchParams.set("limit", String(params.limit));
   if (params.collapse != null) searchParams.set("collapse", String(params.collapse));
+  if (params.collapse_pct != null) searchParams.set("collapse_pct", String(params.collapse_pct));
 
   const json = await fetchJson(`${BASE_URL}/routes?${searchParams}`);
   return Schema.decodeUnknownSync(RoutesResponseSchema)(json);

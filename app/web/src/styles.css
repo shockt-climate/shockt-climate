@@ -730,6 +730,29 @@ button[type="submit"]:disabled {
   cursor: pointer;
 }
 
+.granularity-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slider-row input[type="range"] {
+  flex: 1;
+}
+
+.slider-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 /* Map */
 .route-map {
   border-radius: var(--radius);

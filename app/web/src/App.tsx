@@ -42,6 +42,7 @@ export function App(): JSX.Element {
       compare_scenario: params.compareScenario ?? undefined,
       hs6: params.hs6 ?? undefined,
       collapse: params.collapse,
+      collapse_pct: params.collapsePct ?? undefined,
     });
   }
 
