@@ -16,11 +16,13 @@ jobs:
 
       - name: Inject secrets into app spec
         run: |
-          for key in DATABASE_URL; do
-            yq -i "(.services[] | select(.name == \"api\").envs[] | select(.key == \"$key\")).value = strenv($key)" .do/app.yaml
-          done
+          yq -i '(.services[0].envs[] | select(.key == "DATABASE_URL")).value = strenv(DATABASE_URL)' .do/app.yaml
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Verify injection
+        run: |
+          yq '.services[0].envs[] | select(.key == "DATABASE_URL") | .value | length' .do/app.yaml
 
       - name: Deploy to DigitalOcean App Platform
         uses: digitalocean/app_action/deploy@v2
