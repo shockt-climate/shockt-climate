@@ -26,6 +26,7 @@ services:
     envs:
       - key: DATABASE_URL
         scope: RUN_TIME
+        type: SECRET
         value: placeholder # injected by deploy workflow
 
 static_sites:
