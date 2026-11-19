@@ -262,24 +262,13 @@ def test_different_coast_regions_separate():
     assert len(result) == 2
 
 
-def test_nearby_arrival_ports_cluster_together():
-    routes = [
-        _route(100.0, to_node="arrival_seaport:LA"),
-        _route(100.1, to_node="arrival_seaport:LB"),
-    ]
-    config = RouteCollapseConfig(min_representatives=1, arrival_cluster_km=100.0)
-    result = cluster_routes(routes, NODES, config)
-    assert len(result) == 1
-
-
-def test_distant_arrival_ports_separate():
+def test_same_coast_region_different_ports_cluster_together():
     routes = [
         _route(100.0, to_node="arrival_seaport:LA"),
         _route(100.1, to_node="arrival_seaport:OAK"),
     ]
-    config = RouteCollapseConfig(min_representatives=1, arrival_cluster_km=50.0)
-    result = cluster_routes(routes, NODES, config)
-    assert len(result) == 2
+    result = cluster_routes(routes, NODES)
+    assert len(result) == 1
 
 
 def test_disabled_returns_single_cluster():

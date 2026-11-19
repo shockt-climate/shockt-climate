@@ -31,7 +31,6 @@ class RouteCollapseConfig:
 
     enabled: bool = True
     passages_distinct: bool = True
-    arrival_cluster_km: float = 100.0
     dimensions: tuple[DimensionConfig, ...] = _DEFAULT_DIMENSIONS
     min_representatives: int = 1
     max_representatives: int | None = None
@@ -81,7 +80,6 @@ def cluster_nodes_by_proximity(
 def _partition_key(
     route: Route,
     nodes: Mapping[str, Node],
-    arrival_clusters: dict[str, int],
     config: RouteCollapseConfig,
 ) -> tuple:
     departure = nodes[route.legs[0].from_node]
@@ -102,7 +100,6 @@ def _partition_key(
         key.append(None)
 
     key.append(arrival.coast_region)
-    key.append(arrival_clusters.get(arrival_node_id, -1))
 
     return tuple(key)
 
@@ -244,14 +241,9 @@ def cluster_routes(
             )
         ]
 
-    arrival_ids = list(
-        {r.legs[-1].from_node if len(r.legs) >= 2 else r.legs[-1].to_node for r in routes if r.legs}
-    )
-    arrival_clusters = cluster_nodes_by_proximity(arrival_ids, nodes, config.arrival_cluster_km)
-
     groups: dict[tuple, list[Route]] = defaultdict(list)
     for route in routes:
-        key = _partition_key(route, nodes, arrival_clusters, config)
+        key = _partition_key(route, nodes, config)
         groups[key].append(route)
 
     dim_config = config.dimensions[0] if config.dimensions else DimensionConfig(key="emissions")
