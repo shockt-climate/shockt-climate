@@ -113,3 +113,15 @@ class RoutesResponse(BaseModel):
     commodity: CommodityContext | None = None
     query: QueryEcho
 
+
+class PathResponse(BaseModel):
+    from_node: str
+    to_node: str
+    scenario: str
+    coordinates: list[list[float]]
+    km: float
+    stored_km: float
+    km_matches: bool
+    passages: list[str]
+    closed: list[str]
+    source: str

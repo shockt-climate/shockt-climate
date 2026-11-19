@@ -178,6 +178,7 @@ def _seed_test_data(conn: psycopg.Connection[tuple]) -> None:
     nodes = [
         ("departure_port:BGD_100", "departure_port", "Chittagong", "BGD", 22.33, 91.80, "BGD_100"),
         ("departure_port:BGD_101", "departure_port", "Mongla", "BGD", 22.49, 89.60, "BGD_101"),
+        ("departure_port:IND_300", "departure_port", "Mumbai", "IND", 18.95, 72.84, "IND_300"),
         ("departure_port:CHN_200", "departure_port", "Shanghai", "CHN", 31.23, 121.47, "CHN_200"),
         ("arrival_seaport:2704", "arrival_seaport", "Los Angeles", "USA", 33.74, -118.27, "2704"),
         ("arrival_seaport:0401", "arrival_seaport", "New York", "USA", 40.68, -74.04, "0401"),
@@ -228,6 +229,28 @@ def _seed_test_data(conn: psycopg.Connection[tuple]) -> None:
         (chn_200, bgd_ny, "open", 19200, "panama"),
         (chn_200, bgd_ny, "panama_closed", 22100, "suez|gibraltar"),
     ]
+    import searoute
+
+    for scenario, closed in (
+        ("open", ["northwest"]),
+        ("red_sea_closed", ["northwest", "babalmandab"]),
+    ):
+        feature = searoute.searoute(
+            [72.84, 18.95],
+            [4.50, 51.92],
+            units="km",
+            restrictions=closed,
+            return_passages=True,
+        )
+        sea_rows.append(
+            (
+                "departure_port:IND_300",
+                "eu_seaport:NLRTM",
+                scenario,
+                round(feature["properties"]["length"], 1),
+                "|".join(feature["properties"]["traversed_passages"]),
+            )
+        )
     for from_id, to_id, scenario, km, passages in sea_rows:
         duration_h = km / 23.15
         conn.execute(

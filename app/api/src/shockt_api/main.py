@@ -11,6 +11,8 @@ from shockt_api.db import load_cached_data
 from shockt_api.disruptions import router as disruptions_router
 from shockt_api.nodes import init_nodes
 from shockt_api.nodes import router as nodes_router
+from shockt_api.paths import init_paths
+from shockt_api.paths import router as paths_router
 from shockt_api.routes import init_routes
 from shockt_api.routes import router as routes_router
 
@@ -20,6 +22,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     database_url = os.environ["DATABASE_URL"]
     data = load_cached_data(database_url)
     init_routes(data)
+    init_paths(data)
     init_nodes(database_url)
     yield
 
@@ -33,6 +36,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(paths_router)
 app.include_router(routes_router)
 app.include_router(nodes_router)
 app.include_router(disruptions_router)
