@@ -1,0 +1,13 @@
+**/__pycache__
+**/.venv
+**/node_modules
+**/.git
+**/dist
+**/.pytest_cache
+**/.ruff_cache
+data-pipelines/
+analysis/
+inputs/
+docs/
+content/
+.claude/

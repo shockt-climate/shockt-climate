@@ -1,0 +1,43 @@
+# DigitalOcean App Platform spec for ShockT Climate.
+# Lines marked [INSTANCE-SPECIFIC] must change when moving to a new DO account.
+name: shockt-climate
+region: tor # [INSTANCE-SPECIFIC] change to preferred region
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+services:
+  - name: api
+    dockerfile_path: Dockerfile
+    github:
+      repo: shockt-climate/shockt-climate # [INSTANCE-SPECIFIC] owner/repo
+      branch: main
+      deploy_on_push: false # deploy via GH Actions workflow
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    routes:
+      - path: /api
+        preserve_path_prefix: false
+    health_check:
+      http_path: /docs
+      initial_delay_seconds: 30
+      period_seconds: 15
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET # injected by deploy workflow
+
+static_sites:
+  - name: web
+    github:
+      repo: shockt-climate/shockt-climate # [INSTANCE-SPECIFIC] owner/repo
+      branch: main
+      deploy_on_push: false
+    source_dir: app/web
+    build_command: npm ci && npm run build
+    output_dir: dist
+    environment_slug: node-js
+    routes:
+      - path: /
+    catchall_document: index.html
