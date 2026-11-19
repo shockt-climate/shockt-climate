@@ -52,7 +52,7 @@ Two routes from ports 30 km apart but in different customs territories (e.g. She
 | Passage set | Set equality | On | `passages_distinct` |
 | Arrival coast region | Exact match on `dim_nodes.coast_region` | On | Always on (data-derived, not configurable) |
 | Arrival port proximity | Haversine clustering within a coast region | 100 km | `arrival_cluster_km` |
-| Departure port proximity | Haversine clustering within a country | 50 km | `departure_cluster_km` |
+| ~~Departure port proximity~~ | Removed: country partition is sufficient; departure variants within a country are separated by the emissions gap algorithm when they differ meaningfully | — | — |
 
 Coast region (`west`, `east`, `gulf`, `inland`, `noncontiguous`) is already computed on `dim_nodes` by the `coast_region` macro. It provides the coarse geographic partition for free. Proximity clustering operates within a coast region, resolving finer distinctions (LA vs Long Beach = same cluster at 100 km; LA vs Oakland = different clusters).
 
@@ -69,7 +69,6 @@ def partition_key(route: Route, nodes: dict[str, Node], ...) -> tuple:
         frozenset(route.passages),                  # passage set
         arrival.coast_region or "unknown",          # coarse arrival geography
         arrival_proximity_clusters[arrival_id],     # fine arrival geography
-        departure_proximity_clusters[departure_id], # fine departure geography
     ]
     if len(route.legs) >= 3:                        # feeder route
         hub = nodes[route.legs[1].from_node]
@@ -255,7 +254,6 @@ class RouteCollapseConfig:
     # Stage 1 — structural partitions
     passages_distinct: bool = True
     arrival_cluster_km: float = 100.0
-    departure_cluster_km: float = 50.0
 
     # Stage 3 — gap + width clustering
     dimensions: tuple[DimensionConfig, ...] = (
@@ -276,7 +274,6 @@ class RouteCollapseConfig:
 | `enabled` | Master switch; `false` bypasses all clustering | `true` |
 | `passages_distinct` | Whether different passage sets force separate partitions | `true` |
 | `arrival_cluster_km` | Proximity threshold for grouping arrival ports within a coast region | 100 km |
-| `departure_cluster_km` | Proximity threshold for grouping departure ports within a country | 50 km |
 | `dimensions` | Ordered list of active dimensions with per-dimension gap_ratio and max_span_pct | Emissions only |
 | `dimensions[].gap_ratio` | How obvious a jump must be to count as a natural break (higher = fewer breaks) | 3.0 |
 | `dimensions[].max_span_pct` | Max cluster width as % of range; forces separation in uniform distributions | 25.0 |
