@@ -116,6 +116,11 @@ describe("RoutesResponse schema", () => {
       air: [],
       truck: [],
       rail: [],
+      vessel_direct_clustered: null,
+      vessel_feeder_clustered: null,
+      air_clustered: null,
+      truck_clustered: null,
+      rail_clustered: null,
       comparison: null,
       factors: {
         ocean: {

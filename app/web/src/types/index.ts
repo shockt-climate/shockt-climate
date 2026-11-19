@@ -15,6 +15,21 @@ export const ROUTE_CATEGORIES: readonly RouteCategory[] = [
   "rail",
 ] as const;
 
+export type ClusteredRouteCategory =
+  | "vessel_direct_clustered"
+  | "vessel_feeder_clustered"
+  | "air_clustered"
+  | "truck_clustered"
+  | "rail_clustered";
+
+export const CLUSTERED_CATEGORIES: Record<RouteCategory, ClusteredRouteCategory> = {
+  vessel_direct: "vessel_direct_clustered",
+  vessel_feeder: "vessel_feeder_clustered",
+  air: "air_clustered",
+  truck: "truck_clustered",
+  rail: "rail_clustered",
+};
+
 export const MODE_COLORS: Record<string, string> = {
   ocean: "#2563eb",
   sea: "#2563eb",

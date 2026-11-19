@@ -38,6 +38,7 @@ export interface RoutesParams {
   compare_scenario?: string;
   hs6?: string;
   limit?: number;
+  collapse?: boolean;
 }
 
 export async function fetchRoutes(
@@ -54,6 +55,7 @@ export async function fetchRoutes(
     searchParams.set("compare_scenario", params.compare_scenario);
   if (params.hs6) searchParams.set("hs6", params.hs6);
   if (params.limit != null) searchParams.set("limit", String(params.limit));
+  if (params.collapse != null) searchParams.set("collapse", String(params.collapse));
 
   const json = await fetchJson(`${BASE_URL}/routes?${searchParams}`);
   return Schema.decodeUnknownSync(RoutesResponseSchema)(json);

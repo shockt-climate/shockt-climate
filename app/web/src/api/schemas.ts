@@ -83,12 +83,32 @@ export const QueryEcho = Schema.Struct({
 });
 export type QueryEcho = typeof QueryEcho.Type;
 
+export const RouteClusterResponse = Schema.Struct({
+  rank: Schema.Number,
+  representative_index: Schema.Number,
+  routes: Schema.Array(RouteResponse),
+  emissions_range: Schema.Tuple(Schema.Number, Schema.Number),
+  distance_range: Schema.Tuple(Schema.Number, Schema.Number),
+  break_type: Schema.Literal("natural", "span", "floor"),
+});
+export type RouteClusterResponse = typeof RouteClusterResponse.Type;
+
+export const ClusteredCategoryResponse = Schema.Struct({
+  clusters: Schema.Array(RouteClusterResponse),
+});
+export type ClusteredCategoryResponse = typeof ClusteredCategoryResponse.Type;
+
 export const RoutesResponse = Schema.Struct({
   vessel_direct: Schema.Array(RouteResponse),
   vessel_feeder: Schema.Array(RouteResponse),
   air: Schema.Array(RouteResponse),
   truck: Schema.Array(RouteResponse),
   rail: Schema.Array(RouteResponse),
+  vessel_direct_clustered: Schema.NullOr(ClusteredCategoryResponse),
+  vessel_feeder_clustered: Schema.NullOr(ClusteredCategoryResponse),
+  air_clustered: Schema.NullOr(ClusteredCategoryResponse),
+  truck_clustered: Schema.NullOr(ClusteredCategoryResponse),
+  rail_clustered: Schema.NullOr(ClusteredCategoryResponse),
   comparison: Schema.NullOr(
     Schema.Record({ key: Schema.String, value: Schema.Array(ComparisonRoute) })
   ),
