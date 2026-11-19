@@ -35,7 +35,7 @@ static_sites:
       branch: main
       deploy_on_push: false
     source_dir: app/web
-    build_command: npm ci --include=dev && npm run build
+    build_command: npm ci --include=dev && npx vite build
     output_dir: dist
     environment_slug: node-js
     routes:
