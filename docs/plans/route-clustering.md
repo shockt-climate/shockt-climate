@@ -259,7 +259,7 @@ class RouteCollapseConfig:
     dimensions: tuple[DimensionConfig, ...] = (
         DimensionConfig(key="emissions", gap_ratio=3.0, max_span_pct=25.0),
     )
-    min_representatives: int = 3
+    min_representatives: int = 1
     max_representatives: int | None = None
     max_per_cluster: int | None = None   # cap alternatives within a cluster
 
@@ -277,7 +277,7 @@ class RouteCollapseConfig:
 | `dimensions` | Ordered list of active dimensions with per-dimension gap_ratio and max_span_pct | Emissions only |
 | `dimensions[].gap_ratio` | How obvious a jump must be to count as a natural break (higher = fewer breaks) | 3.0 |
 | `dimensions[].max_span_pct` | Max cluster width as % of range; forces separation in uniform distributions | 25.0 |
-| `min_representatives` | Always show at least this many clusters per partition (if enough routes exist) | 3 |
+| `min_representatives` | Always show at least this many clusters per partition (if enough routes exist) | 1 |
 | `max_representatives` | Hard cap on clusters per partition | None |
 | `max_per_cluster` | Cap alternatives within a cluster | None |
 | `include_dominated` | Whether to backfill Pareto-dominated routes into clusters | `true` |

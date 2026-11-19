@@ -33,7 +33,7 @@ class RouteCollapseConfig:
     passages_distinct: bool = True
     arrival_cluster_km: float = 100.0
     dimensions: tuple[DimensionConfig, ...] = _DEFAULT_DIMENSIONS
-    min_representatives: int = 3
+    min_representatives: int = 1
     max_representatives: int | None = None
     max_per_cluster: int | None = None
     include_dominated: bool = True
