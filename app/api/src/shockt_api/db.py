@@ -106,7 +106,7 @@ def _to_float(v: object) -> float | None:
 def _load_factors(conn: psycopg.Connection[tuple]) -> list[Factor]:
     rows = conn.execute(
         "select source, source_row_id, mode, variant, vehicle_type, size_class, "
-        "haul, radiative_forcing, ttw_kg_co2e_per_tkm, wtt_kg_co2e_per_tkm, wtw_kg_co2e_per_tkm "
+        "haul, radiative_forcing, wtw_kg_co2e_per_tkm "
         "from core.ref_emission_factors"
     ).fetchall()
     return [
@@ -119,9 +119,7 @@ def _load_factors(conn: psycopg.Connection[tuple]) -> list[Factor]:
             size_class=r[5],
             haul=r[6],
             radiative_forcing=r[7],
-            ttw_kg_co2e_per_tkm=_to_float(r[8]),
-            wtt_kg_co2e_per_tkm=_to_float(r[9]),
-            wtw_kg_co2e_per_tkm=_to_float(r[10]),
+            wtw_kg_co2e_per_tkm=_to_float(r[8]),
         )
         for r in rows
     ]

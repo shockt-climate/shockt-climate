@@ -1,11 +1,10 @@
 import type { JSX } from "react";
 import type { RoutesResponse } from "../api/schemas";
-import type { EmissionScope, RouteCategory } from "../types";
+import type { RouteCategory } from "../types";
 import { ROUTE_CATEGORIES } from "../types";
 
 interface Props {
   data: RoutesResponse;
-  scope: EmissionScope;
   onFilterMode: (category: RouteCategory) => void;
 }
 
@@ -16,20 +15,6 @@ const LABELS: Record<RouteCategory, string> = {
   truck: "Truck",
   rail: "Rail",
 };
-
-function scopeTotal(
-  route: RoutesResponse["vessel_direct"][number],
-  scope: EmissionScope
-): number {
-  switch (scope) {
-    case "wtw":
-      return route.total_wtw_kg_co2e_per_t;
-    case "ttw":
-      return route.total_ttw_kg_co2e_per_t;
-    case "wtt":
-      return route.total_wtt_kg_co2e_per_t;
-  }
-}
 
 function formatKg(value: number): string {
   return value >= 1000
@@ -45,7 +30,6 @@ function formatDuration(hours: number | null): string {
 
 export function ModeComparison({
   data,
-  scope,
   onFilterMode,
 }: Props): JSX.Element {
   const cards = ROUTE_CATEGORIES.filter((c) => data[c].length > 0);
@@ -56,7 +40,7 @@ export function ModeComparison({
     <div className="mode-comparison">
       {cards.map((cat) => {
         const best = data[cat][0];
-        const emissions = scopeTotal(best, scope);
+        const emissions = best.total_wtw_kg_co2e_per_t;
         return (
           <button
             key={cat}

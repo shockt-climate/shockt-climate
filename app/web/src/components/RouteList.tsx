@@ -1,12 +1,11 @@
 import { type JSX, useState } from "react";
 import type { RoutesResponse } from "../api/schemas";
-import type { EmissionScope, RouteCategory } from "../types";
+import type { RouteCategory } from "../types";
 import { ROUTE_CATEGORIES } from "../types";
 import { RouteDetail } from "./RouteDetail";
 
 interface Props {
   data: RoutesResponse;
-  scope: EmissionScope;
   selectedIndex: { category: RouteCategory; index: number } | null;
   onSelectRoute: (category: RouteCategory, index: number) => void;
   disruptedPassages: ReadonlySet<string>;
@@ -22,7 +21,6 @@ const CATEGORY_LABELS: Record<RouteCategory, string> = {
 
 export function RouteList({
   data,
-  scope,
   selectedIndex,
   onSelectRoute,
   disruptedPassages,
@@ -78,7 +76,6 @@ export function RouteList({
             <RouteDetail
               key={`${cat}-${i}`}
               route={route}
-              scope={scope}
               rank={i + 1}
               selected={
                 selectedIndex?.category === cat && selectedIndex.index === i

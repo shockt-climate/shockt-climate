@@ -1,11 +1,10 @@
 import type { JSX } from "react";
 import type { ComparisonRoute, RoutesResponse } from "../api/schemas";
-import type { EmissionScope, RouteCategory } from "../types";
+import type { RouteCategory } from "../types";
 import { ROUTE_CATEGORIES } from "../types";
 
 interface Props {
   comparison: NonNullable<RoutesResponse["comparison"]>;
-  scope: EmissionScope;
 }
 
 const LABELS: Record<RouteCategory, string> = {
@@ -15,20 +14,6 @@ const LABELS: Record<RouteCategory, string> = {
   truck: "Truck",
   rail: "Rail",
 };
-
-function scopeTotal(
-  route: NonNullable<ComparisonRoute["primary"]>,
-  scope: EmissionScope
-): number {
-  switch (scope) {
-    case "wtw":
-      return route.total_wtw_kg_co2e_per_t;
-    case "ttw":
-      return route.total_ttw_kg_co2e_per_t;
-    case "wtt":
-      return route.total_wtt_kg_co2e_per_t;
-  }
-}
 
 function formatKg(value: number): string {
   return value >= 1000
@@ -51,10 +36,8 @@ function DeltaBadge({ delta }: { delta: number }): JSX.Element {
 
 function ComparisonRow({
   entry,
-  scope,
 }: {
   entry: ComparisonRoute;
-  scope: EmissionScope;
 }): JSX.Element {
   const primary = entry.primary;
   const compare = entry.compare;
@@ -65,7 +48,7 @@ function ComparisonRow({
         {primary ? (
           <>
             <div className="comparison-emissions">
-              {formatKg(scopeTotal(primary, scope))} CO₂e/t
+              {formatKg(primary.total_wtw_kg_co2e_per_t)} CO₂e/t
             </div>
             <div className="comparison-meta">
               {primary.legs.map((l) => l.name).join(" → ")}
@@ -81,7 +64,7 @@ function ComparisonRow({
       <div className="comparison-delta">
         {primary && compare ? (
           <DeltaBadge
-            delta={scopeTotal(compare, scope) - scopeTotal(primary, scope)}
+            delta={compare.total_wtw_kg_co2e_per_t - primary.total_wtw_kg_co2e_per_t}
           />
         ) : (
           <span className="delta-badge delta-badge--na">—</span>
@@ -92,7 +75,7 @@ function ComparisonRow({
         {compare ? (
           <>
             <div className="comparison-emissions">
-              {formatKg(scopeTotal(compare, scope))} CO₂e/t
+              {formatKg(compare.total_wtw_kg_co2e_per_t)} CO₂e/t
             </div>
             <div className="comparison-meta">
               {compare.legs.map((l) => l.name).join(" → ")}
@@ -108,7 +91,7 @@ function ComparisonRow({
   );
 }
 
-export function ComparisonList({ comparison, scope }: Props): JSX.Element {
+export function ComparisonList({ comparison }: Props): JSX.Element {
   const categories = ROUTE_CATEGORIES.filter((c) => {
     const entries = comparison[c] as ComparisonRoute[] | undefined;
     return entries && entries.length > 0;
@@ -135,7 +118,7 @@ export function ComparisonList({ comparison, scope }: Props): JSX.Element {
           <section key={cat}>
             <h3 className="route-category-heading">{LABELS[cat]}</h3>
             {entries.map((entry, i) => (
-              <ComparisonRow key={i} entry={entry} scope={scope} />
+              <ComparisonRow key={i} entry={entry} />
             ))}
           </section>
         );

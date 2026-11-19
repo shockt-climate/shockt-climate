@@ -19,16 +19,12 @@ const route = {
       mode: "ocean",
       km: 10000,
       duration_h: 240,
-      ttw_kg_co2e_per_tkm: 0.013,
-      wtt_kg_co2e_per_tkm: 0.003,
       wtw_kg_co2e_per_tkm: 0.016,
       wtw_kg_co2e_per_t: 160,
       passages: [],
     },
   ],
   total_wtw_kg_co2e_per_t: 160,
-  total_ttw_kg_co2e_per_t: 130,
-  total_wtt_kg_co2e_per_t: 30,
   total_wtw_kg_co2e: null,
   total_km: 10000,
   total_duration_h: 240,
@@ -44,8 +40,6 @@ const mockData: RoutesResponse = {
     {
       ...route,
       total_wtw_kg_co2e_per_t: 5000,
-      total_ttw_kg_co2e_per_t: 4000,
-      total_wtt_kg_co2e_per_t: 1000,
       total_km: 9000,
     },
   ],
@@ -67,7 +61,7 @@ const mockData: RoutesResponse = {
 describe("ModeComparison", () => {
   it("renders cards for categories with routes", () => {
     render(
-      <ModeComparison data={mockData} scope="wtw" onFilterMode={vi.fn()} />
+      <ModeComparison data={mockData} onFilterMode={vi.fn()} />
     );
     expect(screen.getByText("Vessel (direct)")).toBeInTheDocument();
     expect(screen.getByText("Air")).toBeInTheDocument();
@@ -75,7 +69,7 @@ describe("ModeComparison", () => {
 
   it("does not render cards for empty categories", () => {
     render(
-      <ModeComparison data={mockData} scope="wtw" onFilterMode={vi.fn()} />
+      <ModeComparison data={mockData} onFilterMode={vi.fn()} />
     );
     expect(screen.queryByText("Truck")).not.toBeInTheDocument();
     expect(screen.queryByText("Rail")).not.toBeInTheDocument();
@@ -83,7 +77,7 @@ describe("ModeComparison", () => {
 
   it("shows best route emissions", () => {
     render(
-      <ModeComparison data={mockData} scope="wtw" onFilterMode={vi.fn()} />
+      <ModeComparison data={mockData} onFilterMode={vi.fn()} />
     );
     expect(screen.getByText("160 kg CO₂e/t")).toBeInTheDocument();
     expect(screen.getByText("5.0 t CO₂e/t")).toBeInTheDocument();
@@ -92,7 +86,7 @@ describe("ModeComparison", () => {
   it("calls onFilterMode when card is clicked", () => {
     const onFilter = vi.fn();
     render(
-      <ModeComparison data={mockData} scope="wtw" onFilterMode={onFilter} />
+      <ModeComparison data={mockData} onFilterMode={onFilter} />
     );
     fireEvent.click(screen.getByText("Air"));
     expect(onFilter).toHaveBeenCalledWith("air");
@@ -105,15 +99,9 @@ describe("ModeComparison", () => {
       air: [],
     };
     const { container } = render(
-      <ModeComparison data={empty} scope="wtw" onFilterMode={vi.fn()} />
+      <ModeComparison data={empty} onFilterMode={vi.fn()} />
     );
     expect(container.innerHTML).toBe("");
   });
 
-  it("uses TTW scope when selected", () => {
-    render(
-      <ModeComparison data={mockData} scope="ttw" onFilterMode={vi.fn()} />
-    );
-    expect(screen.getAllByText("130 kg CO₂e/t")).toHaveLength(1);
-  });
 });

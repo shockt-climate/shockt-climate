@@ -1,7 +1,5 @@
 export type LaneMode = "vessel" | "air" | "truck" | "rail";
 
-export type EmissionScope = "wtw" | "ttw" | "wtt";
-
 export type RouteCategory =
   | "vessel_direct"
   | "vessel_feeder"

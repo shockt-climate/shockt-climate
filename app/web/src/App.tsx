@@ -1,9 +1,8 @@
 import { useState, type JSX } from "react";
-import type { EmissionScope, RouteCategory } from "./types";
+import type { RouteCategory } from "./types";
 import { SearchBar, type SearchParams } from "./components/SearchBar";
 import { RouteList } from "./components/RouteList";
 import { RouteMap } from "./components/RouteMap";
-import { EmissionsScopeToggle } from "./components/EmissionsScopeToggle";
 import { ModeComparison } from "./components/ModeComparison";
 import { ComparisonList } from "./components/ComparisonList";
 import { CommodityContext } from "./components/CommodityContext";
@@ -13,7 +12,6 @@ import { useDisruptions } from "./hooks/useDisruptions";
 export function App(): JSX.Element {
   const routes = useRoutes();
   const disruptions = useDisruptions();
-  const [scope, setScope] = useState<EmissionScope>("wtw");
   const [selectedRoute, setSelectedRoute] = useState<{
     category: RouteCategory;
     index: number;
@@ -54,15 +52,10 @@ export function App(): JSX.Element {
         <>
           <ModeComparison
             data={routes.data}
-            scope={scope}
             onFilterMode={(category) => {
               setSelectedRoute({ category, index: 0 });
             }}
           />
-
-          <div className="results-toolbar">
-            <EmissionsScopeToggle value={scope} onChange={setScope} />
-          </div>
 
           {routes.data.commodity != null && (
             <CommodityContext commodity={routes.data.commodity} />
@@ -71,14 +64,12 @@ export function App(): JSX.Element {
           {routes.data.comparison != null ? (
             <ComparisonList
               comparison={routes.data.comparison}
-              scope={scope}
-            />
+              />
           ) : (
             <div className="results-layout">
               <RouteList
                 data={routes.data}
-                scope={scope}
-                selectedIndex={selectedRoute}
+                    selectedIndex={selectedRoute}
                 onSelectRoute={(category, index) =>
                   setSelectedRoute({ category, index })
                 }

@@ -66,8 +66,6 @@ def _route_to_response(
                 mode=leg.factor_mode,
                 km=round(leg.km, 1),
                 duration_h=round(leg.duration_h, 1) if leg.duration_h is not None else None,
-                ttw_kg_co2e_per_tkm=round(leg.ttw_kg_co2e_per_tkm, 6),
-                wtt_kg_co2e_per_tkm=round(leg.wtt_kg_co2e_per_tkm, 6),
                 wtw_kg_co2e_per_tkm=round(leg.wtw_kg_co2e_per_tkm, 6),
                 wtw_kg_co2e_per_t=round(leg.wtw_kg_co2e_per_t, 1),
                 passages=list(leg.passages),
@@ -80,8 +78,6 @@ def _route_to_response(
     return RouteResponse(
         legs=legs,
         total_wtw_kg_co2e_per_t=round(route.total_wtw_kg_co2e_per_t, 1),
-        total_ttw_kg_co2e_per_t=round(route.total_ttw_kg_co2e_per_t, 1),
-        total_wtt_kg_co2e_per_t=round(route.total_wtt_kg_co2e_per_t, 1),
         total_wtw_kg_co2e=total_wtw_co2e,
         total_km=round(route.total_km, 1),
         total_duration_h=(
@@ -120,8 +116,6 @@ def _build_factor_info(data: CachedData) -> dict[str, FactorInfo]:
             source=factor.source,
             vehicle_type=factor.vehicle_type or "",
             size_class=factor.size_class,
-            ttw=round(factor.ttw_kg_co2e_per_tkm or 0.0, 6),
-            wtt=round(factor.wtt_kg_co2e_per_tkm or 0.0, 6),
             wtw=round(factor.wtw_kg_co2e_per_tkm or 0.0, 6),
         )
     return result

@@ -16,8 +16,6 @@ const leg = {
   mode: "ocean",
   km: 10000,
   duration_h: 240,
-  ttw_kg_co2e_per_tkm: 0.013,
-  wtt_kg_co2e_per_tkm: 0.003,
   wtw_kg_co2e_per_tkm: 0.016,
   wtw_kg_co2e_per_t: 160,
   passages: [],
@@ -26,8 +24,6 @@ const leg = {
 const routeA = {
   legs: [leg],
   total_wtw_kg_co2e_per_t: 160,
-  total_ttw_kg_co2e_per_t: 130,
-  total_wtt_kg_co2e_per_t: 30,
   total_wtw_kg_co2e: null,
   total_km: 10000,
   total_duration_h: 240,
@@ -39,8 +35,6 @@ const routeA = {
 const routeB = {
   ...routeA,
   total_wtw_kg_co2e_per_t: 200,
-  total_ttw_kg_co2e_per_t: 170,
-  total_wtt_kg_co2e_per_t: 30,
 };
 
 describe("ComparisonList", () => {
@@ -55,7 +49,7 @@ describe("ComparisonList", () => {
         },
       ],
     };
-    render(<ComparisonList comparison={comparison} scope="wtw" />);
+    render(<ComparisonList comparison={comparison} />);
     expect(screen.getByText("160.0 kg CO₂e/t")).toBeInTheDocument();
     expect(screen.getByText("200.0 kg CO₂e/t")).toBeInTheDocument();
     expect(screen.getByText(/\+40\.0/)).toBeInTheDocument();
@@ -72,7 +66,7 @@ describe("ComparisonList", () => {
         },
       ],
     };
-    render(<ComparisonList comparison={comparison} scope="wtw" />);
+    render(<ComparisonList comparison={comparison} />);
     expect(
       screen.getByText("Route not available under suez_closed")
     ).toBeInTheDocument();
@@ -89,7 +83,7 @@ describe("ComparisonList", () => {
         },
       ],
     };
-    render(<ComparisonList comparison={comparison} scope="wtw" />);
+    render(<ComparisonList comparison={comparison} />);
     expect(
       screen.getByText("Route not available under open")
     ).toBeInTheDocument();
@@ -97,7 +91,7 @@ describe("ComparisonList", () => {
   });
 
   it("shows empty message when no categories have entries", () => {
-    render(<ComparisonList comparison={{}} scope="wtw" />);
+    render(<ComparisonList comparison={{}} />);
     expect(
       screen.getByText("No routes to compare between these scenarios.")
     ).toBeInTheDocument();
@@ -114,7 +108,7 @@ describe("ComparisonList", () => {
         },
       ],
     };
-    render(<ComparisonList comparison={comparison} scope="wtw" />);
+    render(<ComparisonList comparison={comparison} />);
     expect(screen.getByText("Air")).toBeInTheDocument();
   });
 });

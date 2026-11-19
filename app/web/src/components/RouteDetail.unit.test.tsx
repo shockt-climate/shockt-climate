@@ -19,8 +19,6 @@ const mockRoute: RouteResponse = {
       mode: "ocean",
       km: 18950,
       duration_h: 456,
-      ttw_kg_co2e_per_tkm: 0.0131,
-      wtt_kg_co2e_per_tkm: 0.0027,
       wtw_kg_co2e_per_tkm: 0.0158,
       wtw_kg_co2e_per_t: 299.4,
       passages: ["suez"],
@@ -39,16 +37,12 @@ const mockRoute: RouteResponse = {
       mode: "truck",
       km: 2200,
       duration_h: 22.5,
-      ttw_kg_co2e_per_tkm: 0.0892,
-      wtt_kg_co2e_per_tkm: 0.0181,
       wtw_kg_co2e_per_tkm: 0.1073,
       wtw_kg_co2e_per_t: 236.1,
       passages: [],
     },
   ],
   total_wtw_kg_co2e_per_t: 535.5,
-  total_ttw_kg_co2e_per_t: 445.3,
-  total_wtt_kg_co2e_per_t: 90.2,
   total_wtw_kg_co2e: 5355,
   total_km: 21150,
   total_duration_h: 478.5,
@@ -64,7 +58,6 @@ describe("RouteDetail", () => {
     render(
       <RouteDetail
         route={mockRoute}
-        scope="wtw"
         rank={1}
         selected={false}
         onSelect={vi.fn()}
@@ -79,7 +72,6 @@ describe("RouteDetail", () => {
     render(
       <RouteDetail
         route={mockRoute}
-        scope="wtw"
         rank={1}
         selected={false}
         onSelect={vi.fn()}
@@ -96,7 +88,6 @@ describe("RouteDetail", () => {
     render(
       <RouteDetail
         route={mockRoute}
-        scope="wtw"
         rank={1}
         selected={false}
         onSelect={vi.fn()}
@@ -106,25 +97,11 @@ describe("RouteDetail", () => {
     expect(screen.getByText(/5\.4 t total/)).toBeInTheDocument();
   });
 
-  it("shows TTW emissions in ttw scope", () => {
-    render(
-      <RouteDetail
-        route={mockRoute}
-        scope="ttw"
-        rank={1}
-        selected={false}
-        onSelect={vi.fn()}
-        disruptedPassages={noDisruptions}
-      />
-    );
-    expect(screen.getByText(/445\.3 kg CO₂e/)).toBeInTheDocument();
-  });
 
   it("shows passages", () => {
     render(
       <RouteDetail
         route={mockRoute}
-        scope="wtw"
         rank={1}
         selected={false}
         onSelect={vi.fn()}
@@ -138,7 +115,6 @@ describe("RouteDetail", () => {
     const { container } = render(
       <RouteDetail
         route={mockRoute}
-        scope="wtw"
         rank={1}
         selected={true}
         onSelect={vi.fn()}
@@ -154,7 +130,6 @@ describe("RouteDetail", () => {
     render(
       <RouteDetail
         route={mockRoute}
-        scope="wtw"
         rank={1}
         selected={false}
         onSelect={vi.fn()}

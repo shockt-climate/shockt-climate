@@ -32,8 +32,6 @@ class LegResponse(BaseModel):
     mode: str
     km: float
     duration_h: float | None
-    ttw_kg_co2e_per_tkm: float
-    wtt_kg_co2e_per_tkm: float
     wtw_kg_co2e_per_tkm: float
     wtw_kg_co2e_per_t: float
     passages: list[str]
@@ -42,8 +40,6 @@ class LegResponse(BaseModel):
 class RouteResponse(BaseModel):
     legs: list[LegResponse]
     total_wtw_kg_co2e_per_t: float
-    total_ttw_kg_co2e_per_t: float
-    total_wtt_kg_co2e_per_t: float
     total_wtw_kg_co2e: float | None
     total_km: float
     total_duration_h: float | None
@@ -75,8 +71,6 @@ class FactorInfo(BaseModel):
     source: str
     vehicle_type: str
     size_class: str | None = None
-    ttw: float
-    wtt: float
     wtw: float
 
 

@@ -112,7 +112,6 @@ The engine enforces this by construction: no distance edge → no route. The API
 | `modes` | Restrict to specific transport modes (e.g. vessel only, air only) or return all (default) | Trivial |
 | `inland_mode` | Prefer truck or rail for the seaport → destination inland leg | Trivial |
 | `vehicle_type` | Override the emission factor for a mode. Requires `source` + `vehicle_type` (and optionally `size_class`, `haul`, `radiative_forcing`) to uniquely identify a factor row — vehicle type alone is ambiguous (e.g. UK has container\_ship with and without radiative forcing). | Low |
-| `emission_scope` | Return well-to-wheel (default), tank-to-wheel, or well-to-tank breakdown | Low |
 | `radiative_forcing` | Include or exclude radiative forcing on air freight factors | Low |
 | `scenario` | Sea-distance scenario: open, red\_sea\_closed, panama\_closed, panama\_and\_red\_sea\_closed | Already built in |
 | `compare_scenarios` | Return results under two scenarios side by side with the delta | Low |
@@ -166,7 +165,6 @@ The front end combines the calculator's output with the disruption annotations a
 - Routes ranked by emissions (lowest first), groupable and filterable by transport mode
 - Per-leg breakdown (mode, distance, emissions, estimated time)
 - Emissions shown as per-tonne and total (when cargo weight provided)
-- Emissions scope toggle (well-to-wheel / tank-to-wheel / well-to-tank)
 - Map with legs drawn between node coordinates, colored by mode
 - Disruption badges on affected routes
 - Mode comparison view: side-by-side cards for vessel, air, truck, rail
@@ -186,8 +184,8 @@ The new `shockt_engine.routing` module reuses the factor-selection logic and con
 | Existing | How routing uses it |
 |---|---|
 | `factors.py`: `select_factors`, `load_leg_factors`, `LegFactors` | Picking the right emission factor for each mode. The selection logic and `config/leg_factors.yaml` are reused directly. Both feeder and main-line ocean legs use `ocean` / `container_ship / average`, matching the existing engine. |
-| `factors.py`: `Factor` dataclass | **Must be extended.** The existing `Factor` stores only `wtw_kg_co2e_per_tkm`. The routing module needs TTW and WTT separately (both exist in `ref_emission_factors` but aren't loaded). Add `ttw_kg_co2e_per_tkm` and `wtt_kg_co2e_per_tkm` fields to `Factor` and update the loader query. |
-| `emissions.py`: `Leg`, `lane_intensity` | Not reused — `RouteLeg` is richer (TTW/WTT breakdown, passages, duration, node IDs). The per-leg emission formula (`km × factor`) is the same arithmetic but not worth an import. |
+| `factors.py`: `Factor` dataclass | Reused as is. It stores only `wtw_kg_co2e_per_tkm` (well-to-wheel), the single emissions figure the calculator uses; the tank-to-wheel and well-to-tank columns of `ref_emission_factors` are not loaded. |
+| `emissions.py`: `Leg`, `lane_intensity` | Not reused — `RouteLeg` is richer (passages, duration, node IDs). The per-leg emission formula (`km × factor`) is the same arithmetic but not worth an import. |
 | `lanes.py` | Not reused — it computes weighted averages over all nodes in a lane; the calculator shows each specific route individually. |
 
 ---
@@ -204,7 +202,7 @@ The new `shockt_engine.routing` module reuses the factor-selection logic and con
 | `core.distances_air` | Departure airport → air gateway distances |
 | `core.distances_road` | Road distances for truck legs |
 | `core.distances_rail` | Rail distances |
-| `core.ref_emission_factors` | kg CO2e per tonne-km by mode and variant (ttw, wtt, wtw) |
+| `core.ref_emission_factors` | kg CO2e per tonne-km by mode and variant; the calculator reads the well-to-wheel (`wtw`) column |
 | `core.agg_feeder_hub_shares_monthly` | Feeder voyage distances and durations per origin × hub, monthly |
 | `core.dim_departure_ports` | Port roles: `is_us_departure`, `is_feeder_hub` — identifies which departure ports are hubs |
 
@@ -261,13 +259,8 @@ class RouteLeg:
     factor_mode: Mode            # ocean, air, truck, rail
     km: float
     duration_h: float | None     # from distance seeds, null when not available
-    ttw_kg_co2e_per_tkm: float   # tank-to-wheel
-    wtt_kg_co2e_per_tkm: float   # well-to-tank
+    wtw_kg_co2e_per_tkm: float   # well-to-wheel
     passages: tuple[str, ...]    # empty for non-sea legs
-
-    @property
-    def wtw_kg_co2e_per_tkm(self) -> float:
-        return self.ttw_kg_co2e_per_tkm + self.wtt_kg_co2e_per_tkm
 
     @property
     def wtw_kg_co2e_per_t(self) -> float:
@@ -279,8 +272,6 @@ class Route:
     legs: tuple[RouteLeg, ...]
     total_km: float
     total_duration_h: float | None     # null when any leg's duration is null
-    total_ttw_kg_co2e_per_t: float
-    total_wtt_kg_co2e_per_t: float
     total_wtw_kg_co2e_per_t: float
     passages: tuple[str, ...]    # union of leg passages
     scenario: str                # which sea-distance scenario was used
@@ -315,15 +306,13 @@ class RouteDistances:
 
 @dataclass(frozen=True)
 class FactorRow:
-    """One row of ref_emission_factors with all three scopes."""
+    """One row of ref_emission_factors, well-to-wheel only."""
     source: str
     variant: str
     vehicle_type: str | None
     size_class: str | None
     haul: str | None
     radiative_forcing: bool | None
-    ttw_kg_co2e_per_tkm: float
-    wtt_kg_co2e_per_tkm: float
     wtw_kg_co2e_per_tkm: float
 
 @dataclass(frozen=True)
@@ -522,8 +511,6 @@ Returns:
           "mode": "ocean",
           "km": 18950.0,
           "duration_h": 456.0,
-          "ttw_kg_co2e_per_tkm": 0.0131,
-          "wtt_kg_co2e_per_tkm": 0.0027,
           "wtw_kg_co2e_per_tkm": 0.0158,
           "wtw_kg_co2e_per_t": 299.4,
           "passages": ["babalmandab", "suez", "gibraltar"]
@@ -536,16 +523,12 @@ Returns:
           "mode": "truck",
           "km": 2200.0,
           "duration_h": 22.5,
-          "ttw_kg_co2e_per_tkm": 0.0892,
-          "wtt_kg_co2e_per_tkm": 0.0181,
           "wtw_kg_co2e_per_tkm": 0.1073,
           "wtw_kg_co2e_per_t": 236.1,
           "passages": []
         }
       ],
       "total_wtw_kg_co2e_per_t": 535.5,
-      "total_ttw_kg_co2e_per_t": 445.3,
-      "total_wtt_kg_co2e_per_t": 90.2,
       "total_wtw_kg_co2e": 5355.0,
       "total_km": 21150.0,
       "total_duration_h": 478.5,
@@ -566,10 +549,10 @@ Returns:
     "affected_routes": {"vessel_direct": [0], "vessel_feeder": [], "air": []}
   },
   "factors": {
-    "ocean": {"source": "uk_desnz", "vehicle_type": "container_ship", "size_class": "average", "ttw": 0.0131, "wtt": 0.0027, "wtw": 0.0158},
-    "air": {"source": "uk_desnz", "vehicle_type": "freight_flight", "ttw": 0.4927, "wtt": 0.1094, "wtw": 0.6021},
-    "truck": {"source": "epa_hub", "vehicle_type": "medium_heavy_duty_truck", "ttw": 0.0892, "wtt": 0.0181, "wtw": 0.1073},
-    "rail": {"source": "uk_desnz", "vehicle_type": "rail", "ttw": 0.0245, "wtt": 0.0033, "wtw": 0.0278}
+    "ocean": {"source": "uk_desnz", "vehicle_type": "container_ship", "size_class": "average", "wtw": 0.0158},
+    "air": {"source": "uk_desnz", "vehicle_type": "freight_flight", "wtw": 0.6021},
+    "truck": {"source": "epa_hub", "vehicle_type": "medium_heavy_duty_truck", "wtw": 0.1073},
+    "rail": {"source": "uk_desnz", "vehicle_type": "rail", "wtw": 0.0278}
   },
   "commodity": null,
   "query": {
@@ -587,7 +570,7 @@ When `compare_scenario` is set, the API enumerates **all** routes under both sce
 
 Route-level fields: When `hs6` is set, `traffic_volume` is `"high"` / `"medium"` / `"low"` based on the route's arrival seaport share of that commodity's total tonnage in `fct_node_weights_monthly` (terciles); when `hs6` is omitted, `traffic_volume` is null. This prevents an exotic low-traffic route from looking equivalent to a high-traffic one — the ranking is still by emissions, but the user sees which routes are realistic. Each sub-list (`vessel_direct`, `vessel_feeder`, `air`, `truck`, `rail`) is independently ranked by `total_wtw_kg_co2e_per_t`.
 
-When `hs6` is set, `commodity` contains `{hs6, description, top_ports: [{node_id, name, weight_t}]}` from `fct_node_weights_monthly`. When `cargo_t` is set, `total_wtw_kg_co2e` (and ttw/wtt variants) appear on each route.
+When `hs6` is set, `commodity` contains `{hs6, description, top_ports: [{node_id, name, weight_t}]}` from `fct_node_weights_monthly`. When `cargo_t` is set, `total_wtw_kg_co2e` appears on each route.
 
 The `disruptions` key is the annotation layer: it reads `dim_disruptions` and tags which routes are affected. The front end uses it to badge routes, but the route ranking is disruption-agnostic.
 
@@ -638,7 +621,7 @@ React + TypeScript + Effect, following [Effect Style](../effect-style.md) and [F
 
 1. **Search bar**: origin and destination autocomplete, optional cargo weight (tonnes), optional HS-6 code, transport mode checkboxes (vessel, air, truck, rail — all checked by default), and a "Calculate" button.
 2. **Mode comparison strip**: after results load, a horizontal strip of cards — one per mode — showing the best route's emissions, time and distance. Clicking a card filters the results list to that mode.
-3. **Results panel**: routes ranked by emissions, expandable to show per-leg breakdown (distance, time, emissions in the selected scope). The lowest-emissions route is highlighted. Disruption badges appear on affected routes.
+3. **Results panel**: routes ranked by emissions, expandable to show per-leg breakdown (distance, time, emissions). The lowest-emissions route is highlighted. Disruption badges appear on affected routes.
 4. **Map**: Leaflet (free, no API key) with route legs drawn as arcs between node coordinates. Clicking a route in the results panel highlights it on the map.
 
 ### 6.2 State
@@ -651,7 +634,6 @@ React + TypeScript + Effect, following [Effect Style](../effect-style.md) and [F
 - `inlandMode: "truck" | "rail"` — inland leg preference
 - `scenario: string` — selected sea-distance scenario (default "open")
 - `compareScenario: string | null` — second scenario for comparison
-- `emissionScope: "wtw" | "ttw" | "wtt"` — which scope to display (default "wtw")
 - `routes: Route[]` — results from the API
 - `comparison: Route[] | null` — results under the second scenario
 - `disruptions: Disruption[]` — from the API
@@ -684,7 +666,6 @@ A collapsible "Advanced options" section below the search bar:
 
 - **Inland mode**: truck (default) or rail for the seaport → state leg
 - **Vehicle type overrides**: per-mode dropdowns (e.g. container\_ship / bulk\_carrier for ocean; hgv / hgv\_refrigerated for truck)
-- **Emissions scope**: well-to-wheel (default), tank-to-wheel, well-to-tank
 - **Radiative forcing**: include (default) or exclude for air freight
 
 ### 6.6 Project layout
@@ -709,7 +690,6 @@ app/
         RouteMap.tsx
         DisruptionBadge.tsx
         ScenarioSelector.tsx
-        EmissionsScopeToggle.tsx
         VehicleTypeSelector.tsx
         CommodityContext.tsx  # historical port volumes for an HS code
         OptionsPanel.tsx     # collapsible advanced options
@@ -798,9 +778,8 @@ No infrastructure provisioning phase — the app connects to the existing Neon d
 
 ### Phase 1: Engine routing module
 
-1. Extend `shockt_engine.factors.Factor` to load `ttw_kg_co2e_per_tkm` and `wtt_kg_co2e_per_tkm` alongside the existing `wtw_kg_co2e_per_tkm`. Update the `select_factor` loader query accordingly. Verify existing lane tests still pass.
-2. Add `shockt_engine/routing.py` with `Node`, `EdgeDistance`, `FeederEdge`, `RouteDistances`, `FactorRow`, `RouteLeg`, `Route`, `RouteOptions` data structures.
-3. Implement `enumerate_routes()`: iterate over node combinations per mode, look up distances and durations, score each leg with `select_factor` (both feeder and main-line ocean legs use `ocean` / `container_ship / average`, matching `lanes.py`), collect passages, apply cycle prevention via visited set, sort by total wtw emissions. Accept optional `hs6` to filter Mexico plant routes via `map_crossing_plant` (see §4.2).
+1. Add `shockt_engine/routing.py` with `Node`, `EdgeDistance`, `FeederEdge`, `RouteDistances`, `FactorRow`, `RouteLeg`, `Route`, `RouteOptions` data structures.
+2. Implement `enumerate_routes()`: iterate over node combinations per mode, look up distances and durations, score each leg with `select_factor` (both feeder and main-line ocean legs use `ocean` / `container_ship / average`, matching `lanes.py`), collect passages, apply cycle prevention via visited set, sort by total wtw emissions. Accept optional `hs6` to filter Mexico plant routes via `map_crossing_plant` (see §4.2).
 4. Sea durations use 12.5 knots (23.15 km/h) per IMO Fourth GHG Study. Air distances are geodesic, matching the existing engine.
 5. Support `RouteOptions`: mode filter, inland mode preference, vehicle type overrides (as `LegFactor`, not bare strings).
 6. Port deduplication: group departure ports within the same port cluster (by proximity, e.g. <5 km haversine) and keep one representative per cluster (highest US-bound `container_voyages`; for feeder-origin ports, highest `feeder_voyages`). See §4.3.
@@ -836,7 +815,7 @@ No infrastructure provisioning phase — the app connects to the existing Neon d
 4. `hooks/useNodes.ts`: debounced autocomplete search.
 5. `components/SearchBar.tsx`: origin + destination inputs, cargo weight field, mode checkboxes.
 6. `hooks/useRoutes.ts`: fetch routes on submit, hold results state.
-7. `components/RouteList.tsx` + `RouteDetail.tsx`: ranked results with per-leg breakdown (distance, time, emissions by scope).
+7. `components/RouteList.tsx` + `RouteDetail.tsx`: ranked results with per-leg breakdown (distance, time, emissions).
 8. `components/RouteMap.tsx`: Leaflet map with geodesic arcs for route legs, colored by mode.
 9. Verify in browser: search for Bangladesh → Texas, confirm routes render with times and emissions, map shows legs.
 
@@ -845,9 +824,8 @@ No infrastructure provisioning phase — the app connects to the existing Neon d
 1. `components/ModeComparison.tsx`: side-by-side cards showing the best route per mode.
 2. `components/ScenarioSelector.tsx`: dropdown to switch scenarios; "compare" toggle fetches both and shows deltas.
 3. `components/DisruptionBadge.tsx`: visual indicator on disrupted routes.
-4. `components/EmissionsScopeToggle.tsx`: switch between wtw / ttw / wtt display.
-5. `components/VehicleTypeSelector.tsx`: override vehicle subtype per mode (e.g. refrigerated HGV).
-6. `components/CommodityContext.tsx`: when HS code entered, show top ports for this product.
+4. `components/VehicleTypeSelector.tsx`: override vehicle subtype per mode (e.g. refrigerated HGV).
+5. `components/CommodityContext.tsx`: when HS code entered, show top ports for this product.
 7. Verify all options in browser.
 
 ### Phase 5: Deploy
@@ -908,7 +886,6 @@ All options the calculator supports, ranked by implementation effort. Everything
 | Transport mode filter | Trivial | 1–3 | Already enumerated by mode |
 | Inland mode preference (truck / rail) | Trivial | 1–2 | Already a parameter in the engine |
 | Time estimates per route | Low | 1–3 | Road seeds have duration; sea and feeder have observed aggregates; air estimated from speed; rail null. See section 1.1 duration table. |
-| Emissions scope toggle (wtw / ttw / wtt) | Low | 1–3 | All three scopes in `ref_emission_factors`; expose all |
 | Radiative forcing toggle (air) | Low | 1–3 | Factor attribute; one toggle |
 | Vehicle subtype selection | Low | 1–3 | Factors exist per subtype; dropdown selects different factor |
 | Mode comparison (side-by-side cards) | Low | 4 | Group results by mode, show best per mode |

@@ -1,12 +1,10 @@
 import type { JSX } from "react";
 import type { RouteResponse } from "../api/schemas";
-import type { EmissionScope } from "../types";
 import { MODE_COLORS } from "../types";
 import { DisruptionBadge } from "./DisruptionBadge";
 
 interface Props {
   route: RouteResponse;
-  scope: EmissionScope;
   rank: number;
   selected: boolean;
   onSelect: () => void;
@@ -32,44 +30,13 @@ function formatKm(km: number): string {
     : `${Math.round(km)} km`;
 }
 
-function scopeValue(
-  route: RouteResponse,
-  scope: EmissionScope
-): number {
-  switch (scope) {
-    case "wtw":
-      return route.total_wtw_kg_co2e_per_t;
-    case "ttw":
-      return route.total_ttw_kg_co2e_per_t;
-    case "wtt":
-      return route.total_wtt_kg_co2e_per_t;
-  }
-}
-
-function legScopeValue(
-  leg: RouteResponse["legs"][number],
-  scope: EmissionScope
-): number {
-  switch (scope) {
-    case "wtw":
-      return leg.km * leg.wtw_kg_co2e_per_tkm;
-    case "ttw":
-      return leg.km * leg.ttw_kg_co2e_per_tkm;
-    case "wtt":
-      return leg.km * leg.wtt_kg_co2e_per_tkm;
-  }
-}
-
 export function RouteDetail({
   route,
-  scope,
   rank,
   selected,
   onSelect,
   disruptedPassages,
 }: Props): JSX.Element {
-  const totalEmissions = scopeValue(route, scope);
-
   return (
     <div
       className={`route-card ${selected ? "route-card--selected" : ""}`}
@@ -83,7 +50,7 @@ export function RouteDetail({
       <div className="route-card-header">
         <span className="route-rank">#{rank}</span>
         <span className="route-emissions">
-          {formatKg(totalEmissions)} CO₂e / t
+          {formatKg(route.total_wtw_kg_co2e_per_t)} CO₂e / t
         </span>
         {route.total_wtw_kg_co2e != null && (
           <span className="route-total">
@@ -114,7 +81,7 @@ export function RouteDetail({
               {formatDuration(leg.duration_h)}
             </span>
             <span className="route-leg-emissions">
-              {formatKg(legScopeValue(leg, scope))}
+              {formatKg(leg.wtw_kg_co2e_per_t)}
             </span>
           </div>
         ))}

@@ -19,16 +19,12 @@ const route = {
       mode: "ocean",
       km: 18950,
       duration_h: 456,
-      ttw_kg_co2e_per_tkm: 0.013,
-      wtt_kg_co2e_per_tkm: 0.003,
       wtw_kg_co2e_per_tkm: 0.016,
       wtw_kg_co2e_per_t: 303.2,
       passages: [],
     },
   ],
   total_wtw_kg_co2e_per_t: 303.2,
-  total_ttw_kg_co2e_per_t: 246.4,
-  total_wtt_kg_co2e_per_t: 56.9,
   total_wtw_kg_co2e: null,
   total_km: 18950,
   total_duration_h: 456,
@@ -63,7 +59,6 @@ describe("RouteList", () => {
     render(
       <RouteList
         data={mockData}
-        scope="wtw"
         selectedIndex={null}
         onSelectRoute={vi.fn()}
         disruptedPassages={noDisruptions}
@@ -78,7 +73,6 @@ describe("RouteList", () => {
     render(
       <RouteList
         data={mockData}
-        scope="wtw"
         selectedIndex={null}
         onSelectRoute={vi.fn()}
         disruptedPassages={noDisruptions}
@@ -92,7 +86,6 @@ describe("RouteList", () => {
     render(
       <RouteList
         data={mockData}
-        scope="wtw"
         selectedIndex={null}
         onSelectRoute={vi.fn()}
         disruptedPassages={noDisruptions}
@@ -112,7 +105,6 @@ describe("RouteList", () => {
     render(
       <RouteList
         data={empty}
-        scope="wtw"
         selectedIndex={null}
         onSelectRoute={vi.fn()}
         disruptedPassages={noDisruptions}
@@ -126,7 +118,6 @@ describe("RouteList", () => {
     render(
       <RouteList
         data={mockData}
-        scope="wtw"
         selectedIndex={null}
         onSelectRoute={onSelect}
         disruptedPassages={noDisruptions}

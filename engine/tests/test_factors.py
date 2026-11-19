@@ -20,8 +20,6 @@ def factor(
     size_class: str | None = None,
     haul: str | None = None,
     radiative_forcing: bool | None = None,
-    ttw_kg_co2e_per_tkm: float | None = 0.7,
-    wtt_kg_co2e_per_tkm: float | None = 0.3,
     wtw_kg_co2e_per_tkm: float | None = 1.0,
 ) -> Factor:
     return Factor(
@@ -33,8 +31,6 @@ def factor(
         size_class=size_class,
         haul=haul,
         radiative_forcing=radiative_forcing,
-        ttw_kg_co2e_per_tkm=ttw_kg_co2e_per_tkm,
-        wtt_kg_co2e_per_tkm=wtt_kg_co2e_per_tkm,
         wtw_kg_co2e_per_tkm=wtw_kg_co2e_per_tkm,
     )
 
@@ -106,8 +102,6 @@ def test_a_factor_without_a_well_to_wheel_value_is_never_chosen() -> None:
             "rail",
             source="epa_hub",
             vehicle_type="rail",
-            ttw_kg_co2e_per_tkm=None,
-            wtt_kg_co2e_per_tkm=None,
             wtw_kg_co2e_per_tkm=None,
         )
     ]

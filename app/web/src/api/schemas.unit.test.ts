@@ -24,8 +24,6 @@ const validLeg = {
   mode: "ocean",
   km: 18950,
   duration_h: 456,
-  ttw_kg_co2e_per_tkm: 0.0131,
-  wtt_kg_co2e_per_tkm: 0.0027,
   wtw_kg_co2e_per_tkm: 0.0158,
   wtw_kg_co2e_per_t: 299.4,
   passages: ["babalmandab", "suez", "gibraltar"],
@@ -34,8 +32,6 @@ const validLeg = {
 const validRoute = {
   legs: [validLeg],
   total_wtw_kg_co2e_per_t: 535.5,
-  total_ttw_kg_co2e_per_t: 445.3,
-  total_wtt_kg_co2e_per_t: 90.2,
   total_wtw_kg_co2e: null,
   total_km: 21150,
   total_duration_h: 478.5,
@@ -116,8 +112,6 @@ describe("RoutesResponse schema", () => {
           source: "uk_desnz",
           vehicle_type: "container_ship",
           size_class: "average",
-          ttw: 0.0131,
-          wtt: 0.0027,
           wtw: 0.0158,
         },
       },
@@ -169,8 +163,6 @@ describe("FactorInfo schema", () => {
       source: "uk_desnz",
       vehicle_type: "container_ship",
       size_class: "average",
-      ttw: 0.0131,
-      wtt: 0.0027,
       wtw: 0.0158,
     });
     expect(result.source).toBe("uk_desnz");
@@ -182,8 +174,6 @@ describe("FactorInfo schema", () => {
       source: "epa_hub",
       vehicle_type: "rail",
       size_class: null,
-      ttw: 0.0245,
-      wtt: 0.0033,
       wtw: 0.0278,
     });
     expect(result.size_class).toBeNull();

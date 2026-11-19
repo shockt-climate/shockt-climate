@@ -23,8 +23,7 @@ def _factor(
     size_class: str | None = None,
     haul: str | None = None,
     radiative_forcing: bool | None = None,
-    ttw: float = 0.01,
-    wtt: float = 0.005,
+    wtw: float = 0.015,
 ) -> Factor:
     return Factor(
         source=source,
@@ -35,9 +34,7 @@ def _factor(
         size_class=size_class,
         haul=haul,
         radiative_forcing=radiative_forcing,
-        ttw_kg_co2e_per_tkm=ttw,
-        wtt_kg_co2e_per_tkm=wtt,
-        wtw_kg_co2e_per_tkm=ttw + wtt,
+        wtw_kg_co2e_per_tkm=wtw,
     )
 
 
@@ -47,8 +44,7 @@ FACTORS = [
         "ocean",
         vehicle_type="container_ship",
         size_class="average",
-        ttw=0.0131,
-        wtt=0.0027,
+        wtw=0.0158,
     ),
     _factor(
         "Freight flights / International / With RF",
@@ -56,24 +52,21 @@ FACTORS = [
         vehicle_type="freight_flight",
         haul="international",
         radiative_forcing=True,
-        ttw=0.4927,
-        wtt=0.1094,
+        wtw=0.6021,
     ),
     _factor(
         "Medium- and Heavy-Duty Truck",
         "truck",
         source="epa_hub",
         vehicle_type="medium_heavy_duty_truck",
-        ttw=0.0892,
-        wtt=0.0181,
+        wtw=0.1073,
     ),
     _factor(
         "Rail",
         "rail",
         source="epa_hub",
         vehicle_type="rail",
-        ttw=0.0245,
-        wtt=0.0033,
+        wtw=0.0278,
     ),
 ]
 
@@ -157,8 +150,7 @@ def test_direct_vessel_route_scores_correctly() -> None:
 
     assert ocean.network == "sea"
     assert ocean.km == 11000.0
-    assert ocean.ttw_kg_co2e_per_tkm == 0.0131
-    assert ocean.wtt_kg_co2e_per_tkm == 0.0027
+    assert ocean.wtw_kg_co2e_per_tkm == 0.0158
     assert ocean.passages == ("panama",)
     assert ocean.duration_h == pytest.approx(11000.0 / 23.15, rel=1e-4)
 
@@ -166,11 +158,8 @@ def test_direct_vessel_route_scores_correctly() -> None:
     assert inland.km == 2200.0
     assert inland.duration_h == 22.5
 
-    expected_ttw = 11000.0 * 0.0131 + 2200.0 * 0.0892
-    expected_wtt = 11000.0 * 0.0027 + 2200.0 * 0.0181
-    assert route.total_ttw_kg_co2e_per_t == pytest.approx(expected_ttw, rel=1e-6)
-    assert route.total_wtt_kg_co2e_per_t == pytest.approx(expected_wtt, rel=1e-6)
-    assert route.total_wtw_kg_co2e_per_t == pytest.approx(expected_ttw + expected_wtt, rel=1e-6)
+    expected = 11000.0 * 0.0158 + 2200.0 * 0.1073
+    assert route.total_wtw_kg_co2e_per_t == pytest.approx(expected, rel=1e-6)
     assert route.passages == ("panama",)
     assert route.scenario == "open"
 
@@ -210,7 +199,7 @@ def test_air_route() -> None:
 
     assert flight.network == "air"
     assert flight.km == 13500.0
-    assert flight.ttw_kg_co2e_per_tkm == 0.4927
+    assert flight.wtw_kg_co2e_per_tkm == 0.6021
     assert flight.duration_h == pytest.approx(13500.0 / 850.0, rel=1e-4)
 
     assert truck.network == "road"

@@ -276,7 +276,6 @@ class TestRoutesResponseShape:
         assert ocean["source"] == "uk_desnz"
         assert ocean["vehicle_type"] == "container_ship"
         assert ocean["wtw"] > 0
-        assert abs(ocean["wtw"] - ocean["ttw"] - ocean["wtt"]) < 1e-6
 
     def test_query_echo(self, client: TestClient) -> None:
         resp = client.get(

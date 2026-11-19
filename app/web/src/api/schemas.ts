@@ -14,8 +14,6 @@ export const LegResponse = Schema.Struct({
   mode: Schema.NonEmptyString,
   km: Schema.Number,
   duration_h: Schema.NullOr(Schema.Number),
-  ttw_kg_co2e_per_tkm: Schema.Number,
-  wtt_kg_co2e_per_tkm: Schema.Number,
   wtw_kg_co2e_per_tkm: Schema.Number,
   wtw_kg_co2e_per_t: Schema.Number,
   passages: Schema.Array(Schema.String),
@@ -25,8 +23,6 @@ export type LegResponse = typeof LegResponse.Type;
 export const RouteResponse = Schema.Struct({
   legs: Schema.Array(LegResponse),
   total_wtw_kg_co2e_per_t: Schema.Number,
-  total_ttw_kg_co2e_per_t: Schema.Number,
-  total_wtt_kg_co2e_per_t: Schema.Number,
   total_wtw_kg_co2e: Schema.NullOr(Schema.Number),
   total_km: Schema.Number,
   total_duration_h: Schema.NullOr(Schema.Number),
@@ -48,8 +44,6 @@ export const FactorInfo = Schema.Struct({
   source: Schema.NonEmptyString,
   vehicle_type: Schema.NonEmptyString,
   size_class: Schema.NullOr(Schema.String),
-  ttw: Schema.Number,
-  wtt: Schema.Number,
   wtw: Schema.Number,
 });
 export type FactorInfo = typeof FactorInfo.Type;
