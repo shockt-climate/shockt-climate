@@ -203,6 +203,7 @@ def get_routes(
     limit: int = Query(default=10, ge=1, le=100),
     collapse: bool = True,
     collapse_pct: float | None = Query(default=None, ge=1, le=100),
+    collapse_sensitivity: float | None = Query(default=None, ge=1.0, le=10.0),
 ) -> RoutesResponse:
     data = _get_data()
 
@@ -304,12 +305,11 @@ def get_routes(
 
     clustered: dict[str, ClusteredCategoryResponse | None] = {cat: None for cat in raw_buckets}
     if collapse:
-        if collapse_pct is not None:
-            config = RouteCollapseConfig(
-                dimensions=(DimensionConfig(key="emissions", max_span_pct=collapse_pct),)
-            )
-        else:
-            config = RouteCollapseConfig()
+        defaults = DimensionConfig(key="emissions")
+        gr = collapse_sensitivity if collapse_sensitivity is not None else defaults.gap_ratio
+        sp = collapse_pct if collapse_pct is not None else defaults.max_span_pct
+        dim = DimensionConfig(key="emissions", gap_ratio=gr, max_span_pct=sp)
+        config = RouteCollapseConfig(dimensions=(dim,))
         for cat, routes in raw_buckets.items():
             if routes:
                 clusters = cluster_routes(routes, nodes, config)

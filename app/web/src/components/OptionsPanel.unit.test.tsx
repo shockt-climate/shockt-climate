@@ -14,8 +14,8 @@ describe("OptionsPanel", () => {
     onHs6Change: vi.fn(),
     collapse: true,
     onCollapseChange: vi.fn(),
-    collapsePct: null,
-    onCollapsePctChange: vi.fn(),
+    collapseSensitivity: null,
+    onCollapseSensitivityChange: vi.fn(),
   };
 
   it("is collapsed by default", () => {

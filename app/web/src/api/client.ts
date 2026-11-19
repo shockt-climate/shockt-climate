@@ -40,6 +40,7 @@ export interface RoutesParams {
   limit?: number;
   collapse?: boolean;
   collapse_pct?: number;
+  collapse_sensitivity?: number;
 }
 
 export async function fetchRoutes(
@@ -58,6 +59,7 @@ export async function fetchRoutes(
   if (params.limit != null) searchParams.set("limit", String(params.limit));
   if (params.collapse != null) searchParams.set("collapse", String(params.collapse));
   if (params.collapse_pct != null) searchParams.set("collapse_pct", String(params.collapse_pct));
+  if (params.collapse_sensitivity != null) searchParams.set("collapse_sensitivity", String(params.collapse_sensitivity));
 
   const json = await fetchJson(`${BASE_URL}/routes?${searchParams}`);
   return Schema.decodeUnknownSync(RoutesResponseSchema)(json);

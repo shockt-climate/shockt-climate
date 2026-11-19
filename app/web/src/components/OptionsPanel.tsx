@@ -12,8 +12,8 @@ interface Props {
   onHs6Change: (hs6: string) => void;
   collapse: boolean;
   onCollapseChange: (v: boolean) => void;
-  collapsePct: number | null;
-  onCollapsePctChange: (v: number | null) => void;
+  collapseSensitivity: number | null;
+  onCollapseSensitivityChange: (v: number | null) => void;
 }
 
 export function OptionsPanel({
@@ -27,8 +27,8 @@ export function OptionsPanel({
   onHs6Change,
   collapse,
   onCollapseChange,
-  collapsePct,
-  onCollapsePctChange,
+  collapseSensitivity,
+  onCollapseSensitivityChange,
 }: Props): JSX.Element {
   const [open, setOpen] = useState(false);
 
@@ -92,12 +92,12 @@ export function OptionsPanel({
                 <span className="slider-label">Fewer</span>
                 <input
                   type="range"
-                  min={5}
-                  max={50}
-                  step={5}
-                  value={55 - (collapsePct ?? 25)}
+                  min={1.5}
+                  max={6}
+                  step={0.5}
+                  value={7.5 - (collapseSensitivity ?? 3)}
                   onChange={(e) =>
-                    onCollapsePctChange(55 - Number(e.target.value))
+                    onCollapseSensitivityChange(7.5 - Number(e.target.value))
                   }
                 />
                 <span className="slider-label">More</span>

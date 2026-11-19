@@ -16,7 +16,7 @@ export interface SearchParams {
   compareScenario: string | null;
   hs6: string | null;
   collapse: boolean;
-  collapsePct: number | null;
+  collapseSensitivity: number | null;
 }
 
 interface Props {
@@ -41,7 +41,7 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
   }
   const [hs6, setHs6] = useState("");
   const [collapse, setCollapse] = useState(true);
-  const [collapsePct, setCollapsePct] = useState<number | null>(null);
+  const [collapseSensitivity, setCollapseSensitivity] = useState<number | null>(null);
 
   function toggleMode(mode: LaneMode) {
     setModes((prev) => {
@@ -72,7 +72,7 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
       compareScenario,
       hs6: hs6 || null,
       collapse,
-      collapsePct: collapse ? collapsePct : null,
+      collapseSensitivity: collapse ? collapseSensitivity : null,
     });
   }
 
@@ -139,8 +139,8 @@ export function SearchBar({ onSubmit, loading }: Props): JSX.Element {
         onHs6Change={setHs6}
         collapse={collapse}
         onCollapseChange={setCollapse}
-        collapsePct={collapsePct}
-        onCollapsePctChange={setCollapsePct}
+        collapseSensitivity={collapseSensitivity}
+        onCollapseSensitivityChange={setCollapseSensitivity}
       />
     </form>
   );
