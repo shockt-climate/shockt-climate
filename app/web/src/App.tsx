@@ -8,6 +8,7 @@ import { ComparisonList } from "./components/ComparisonList";
 import { CommodityContext } from "./components/CommodityContext";
 import { useRoutes } from "./hooks/useRoutes";
 import { useDisruptions } from "./hooks/useDisruptions";
+import { useSeaPaths } from "./hooks/usePaths";
 
 export function App(): JSX.Element {
   const routes = useRoutes();
@@ -16,6 +17,15 @@ export function App(): JSX.Element {
     category: RouteCategory;
     index: number;
   } | null>(null);
+
+  const selected =
+    routes.data && selectedRoute
+      ? (routes.data[selectedRoute.category][selectedRoute.index] ?? null)
+      : null;
+  const { paths, notice } = useSeaPaths(
+    selected,
+    routes.data?.query.scenario ?? "open"
+  );
 
   function handleSubmit(params: SearchParams) {
     setSelectedRoute(null);
@@ -74,8 +84,16 @@ export function App(): JSX.Element {
                   setSelectedRoute({ category, index })
                 }
                 disruptedPassages={disruptions.disruptedPassages}
+                paths={paths}
               />
-              <RouteMap data={routes.data} selectedIndex={selectedRoute} />
+              <div>
+                <RouteMap
+                  data={routes.data}
+                  selectedIndex={selectedRoute}
+                  paths={paths}
+                />
+                {notice && <div className="path-notice">{notice}</div>}
+              </div>
             </div>
           )}
         </>

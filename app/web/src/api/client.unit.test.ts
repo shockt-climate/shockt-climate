@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchRoutes, searchNodes, fetchCountries } from "./client";
+import { fetchCountries, fetchPath, fetchRoutes, searchNodes } from "./client";
 
 const validRoutesResponse = {
   vessel_direct: [],
@@ -124,5 +124,42 @@ describe("fetchCountries", () => {
     const result = await fetchCountries();
     expect(result).toHaveLength(1);
     expect(result[0].iso3).toBe("BGD");
+  });
+});
+
+describe("fetchPath", () => {
+  it("requests the path for a node pair and scenario", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          from_node: "a",
+          to_node: "b",
+          scenario: "red_sea_closed",
+          coordinates: [
+            [1, 2],
+            [3, 4],
+          ],
+          km: 10,
+          stored_km: 10,
+          km_matches: true,
+          passages: ["south_africa"],
+          closed: ["northwest", "babalmandab"],
+          source: "searoute 1.6.0",
+        }),
+    } as Response);
+    const path = await fetchPath("a", "b", "red_sea_closed");
+    expect(path.passages).toEqual(["south_africa"]);
+    const url = String(vi.mocked(fetch).mock.calls[0]?.[0]);
+    expect(url).toContain("/routes/path?");
+    expect(url).toContain("scenario=red_sea_closed");
+  });
+
+  it("rejects a response with the wrong shape", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ from_node: "a" }),
+    } as Response);
+    await expect(fetchPath("a", "b", "open")).rejects.toThrow();
   });
 });

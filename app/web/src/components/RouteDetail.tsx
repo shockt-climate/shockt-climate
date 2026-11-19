@@ -1,5 +1,6 @@
 import { useState, type JSX } from "react";
 import type { RouteResponse } from "../api/schemas";
+import type { PathMap } from "../pathDetail";
 import { LegRow, formatDuration, formatKg, formatKm } from "./LegRow";
 import { DisruptionBadge } from "./DisruptionBadge";
 
@@ -9,6 +10,8 @@ interface Props {
   selected: boolean;
   onSelect: () => void;
   disruptedPassages: ReadonlySet<string>;
+  scenario: string;
+  paths: PathMap;
 }
 
 export function RouteDetail({
@@ -17,6 +20,8 @@ export function RouteDetail({
   selected,
   onSelect,
   disruptedPassages,
+  scenario,
+  paths,
 }: Props): JSX.Element {
   const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set());
   const allExpanded = expanded.size === route.legs.length;
@@ -75,6 +80,8 @@ export function RouteDetail({
             leg={leg}
             expanded={expanded.has(i)}
             onToggle={() => toggleLeg(i)}
+            scenario={scenario}
+            paths={paths}
           />
         ))}
       </div>

@@ -82,6 +82,8 @@ describe("RouteDetail", () => {
         selected={false}
         onSelect={vi.fn()}
         disruptedPassages={noDisruptions}
+        scenario="open"
+        paths={new Map()}
       />
     );
     expect(screen.getByText("#1")).toBeInTheDocument();
@@ -96,6 +98,8 @@ describe("RouteDetail", () => {
         selected={false}
         onSelect={vi.fn()}
         disruptedPassages={noDisruptions}
+        scenario="open"
+        paths={new Map()}
       />
     );
     expect(
@@ -112,6 +116,8 @@ describe("RouteDetail", () => {
         selected={false}
         onSelect={vi.fn()}
         disruptedPassages={noDisruptions}
+        scenario="open"
+        paths={new Map()}
       />
     );
     expect(screen.getByText(/5\.4 t total/)).toBeInTheDocument();
@@ -126,6 +132,8 @@ describe("RouteDetail", () => {
         selected={false}
         onSelect={vi.fn()}
         disruptedPassages={noDisruptions}
+        scenario="open"
+        paths={new Map()}
       />
     );
     expect(screen.getByText(/suez/)).toBeInTheDocument();
@@ -139,6 +147,8 @@ describe("RouteDetail", () => {
         selected={true}
         onSelect={vi.fn()}
         disruptedPassages={noDisruptions}
+        scenario="open"
+        paths={new Map()}
       />
     );
     expect(
@@ -154,6 +164,8 @@ describe("RouteDetail", () => {
         selected={false}
         onSelect={vi.fn()}
         disruptedPassages={noDisruptions}
+        scenario="open"
+        paths={new Map()}
       />
     );
     expect(screen.getByText("19.9 days")).toBeInTheDocument();
@@ -168,6 +180,8 @@ describe("RouteDetail", () => {
           selected={false}
           onSelect={onSelect}
           disruptedPassages={noDisruptions}
+          scenario="open"
+          paths={new Map()}
         />
       );
       return onSelect;
@@ -204,6 +218,75 @@ describe("RouteDetail", () => {
       expect(screen.getAllByText("Calculation")).toHaveLength(2);
       fireEvent.click(screen.getByText("Collapse all legs"));
       expect(screen.queryByText("Calculation")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("diversion detail", () => {
+    const seaLeg = mockRoute.legs[0];
+    const base = {
+      from_node: seaLeg.from_node,
+      to_node: seaLeg.to_node,
+      coordinates: [
+        [1, 2],
+        [3, 4],
+      ] as [number, number][],
+      stored_km: 100,
+      km_matches: true,
+      source: "searoute 1.6.0",
+    };
+    const open = {
+      ...base,
+      scenario: "open",
+      km: 100,
+      passages: ["babalmandab", "suez"],
+      closed: ["northwest"],
+    };
+    const closed = {
+      ...base,
+      scenario: "red_sea_closed",
+      km: 250,
+      stored_km: 250,
+      passages: ["south_africa"],
+      closed: ["northwest", "babalmandab"],
+    };
+    const paths = new Map([
+      [`${seaLeg.from_node}|${seaLeg.to_node}|open`, open],
+      [`${seaLeg.from_node}|${seaLeg.to_node}|red_sea_closed`, closed],
+    ]);
+
+    it("shows the avoided passage, the diversion and the extra km", () => {
+      render(
+        <RouteDetail
+          route={mockRoute}
+          rank={1}
+          selected={false}
+          onSelect={vi.fn()}
+          disruptedPassages={noDisruptions}
+          scenario="red_sea_closed"
+          paths={paths}
+        />
+      );
+      fireEvent.click(screen.getByText("Chittagong → Los Angeles"));
+      expect(screen.getByText("Avoids")).toBeInTheDocument();
+      expect(screen.getByText(/babalmandab \(open route: babalmandab, suez\)/)).toBeInTheDocument();
+      expect(screen.getByText("south_africa")).toBeInTheDocument();
+      expect(screen.getByText("+150 km")).toBeInTheDocument();
+    });
+
+    it("omits the diversion rows while the paths have not loaded", () => {
+      render(
+        <RouteDetail
+          route={mockRoute}
+          rank={1}
+          selected={false}
+          onSelect={vi.fn()}
+          disruptedPassages={noDisruptions}
+          scenario="red_sea_closed"
+          paths={new Map()}
+        />
+      );
+      fireEvent.click(screen.getByText("Chittagong → Los Angeles"));
+      expect(screen.queryByText("Avoids")).not.toBeInTheDocument();
     });
   });
 });

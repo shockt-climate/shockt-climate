@@ -114,3 +114,17 @@ export const CountryResult = Schema.Struct({
   modes: Schema.Array(Schema.String),
 });
 export type CountryResult = typeof CountryResult.Type;
+
+export const PathResponse = Schema.Struct({
+  from_node: Schema.NonEmptyString,
+  to_node: Schema.NonEmptyString,
+  scenario: Schema.NonEmptyString,
+  coordinates: Schema.Array(Schema.Tuple(Schema.Number, Schema.Number)),
+  km: Schema.Number,
+  stored_km: Schema.Number,
+  km_matches: Schema.Boolean,
+  passages: Schema.Array(Schema.String),
+  closed: Schema.Array(Schema.String),
+  source: Schema.NonEmptyString,
+});
+export type PathResponse = typeof PathResponse.Type;

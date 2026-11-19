@@ -582,6 +582,17 @@ When `hs6` is set, `commodity` contains `{hs6, description, top_ports: [{node_id
 
 The `disruptions` key is the annotation layer: it reads `dim_disruptions` and tags which routes are affected. The front end uses it to badge routes, but the route ranking is disruption-agnostic.
 
+#### `GET /routes/path`
+
+The sea path `searoute` finds for a stored node pair under a scenario, for drawing on the map.
+
+| Parameter | Meaning |
+|---|---|
+| `from_node`, `to_node` | Node ids of a pair with a row in `core.distances_sea` (otherwise 404) |
+| `scenario` | `open` (default), `red_sea_closed`, `panama_closed` or `panama_and_red_sea_closed` (otherwise 422) |
+
+Returns `coordinates` (`[lat, lon]` points), `km`, `stored_km`, `km_matches`, `passages`, `closed` (the passages the scenario removed from the graph) and `source`. The API calls `searoute` with the same closed list the pipeline used (`SCENARIO_CLOSED` in `paths.py`, pinned to `distances.sea.scenarios` in `config/sources.yaml` by a test), and `km_matches` is false when the computed length differs from the stored distance by more than 1 km. Results are cached in memory (512 paths). The API logs a warning at startup when the installed `searoute` version differs from the one recorded with the stored distances.
+
 #### `GET /disruptions`
 
 Current disruption state, for the front end to display independently of a route query.
@@ -661,6 +672,8 @@ Leaflet with OpenStreetMap tiles (free, no key). Route legs are drawn as geodesi
 | air | light grey |
 | truck (road) | orange |
 | rail | green |
+
+When a route is selected, each modelled sea leg is drawn along its `searoute` path (`GET /routes/path`). Under a non-`open` scenario the `open` path is drawn dashed and grey beneath it, so the diverted lane and the avoided one are both visible. Feeder legs, legs whose path failed to load and paths that do not match their stored distance keep the straight line, with a notice under the map. The expanded leg in the route card then lists the passages avoided, the passages the diversion crosses and the extra km against `open`.
 
 Node markers show the port/airport/state name on hover. When comparing scenarios, the second scenario's route is drawn as a dashed line in the same color.
 

@@ -1,9 +1,15 @@
 import { Schema } from "effect";
-import type { NodeResult, RoutesResponse, CountryResult } from "./schemas";
+import type {
+  NodeResult,
+  PathResponse,
+  RoutesResponse,
+  CountryResult,
+} from "./schemas";
 import {
   NodeResult as NodeResultSchema,
   RoutesResponse as RoutesResponseSchema,
   CountryResult as CountryResultSchema,
+  PathResponse as PathResponseSchema,
 } from "./schemas";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "/api";
@@ -72,4 +78,19 @@ export async function searchNodes(
 export async function fetchCountries(): Promise<readonly CountryResult[]> {
   const json = await fetchJson(`${BASE_URL}/countries`);
   return Schema.decodeUnknownSync(Schema.Array(CountryResultSchema))(json);
+}
+
+export async function fetchPath(
+  from: string,
+  to: string,
+  scenario: string,
+  signal?: AbortSignal
+): Promise<PathResponse> {
+  const searchParams = new URLSearchParams({
+    from_node: from,
+    to_node: to,
+    scenario,
+  });
+  const json = await fetchJson(`${BASE_URL}/routes/path?${searchParams}`, signal);
+  return Schema.decodeUnknownSync(PathResponseSchema)(json);
 }

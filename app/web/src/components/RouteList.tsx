@@ -2,6 +2,7 @@ import { type JSX, useState } from "react";
 import type { RoutesResponse } from "../api/schemas";
 import type { RouteCategory } from "../types";
 import { ROUTE_CATEGORIES } from "../types";
+import type { PathMap } from "../pathDetail";
 import { RouteDetail } from "./RouteDetail";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
   selectedIndex: { category: RouteCategory; index: number } | null;
   onSelectRoute: (category: RouteCategory, index: number) => void;
   disruptedPassages: ReadonlySet<string>;
+  paths: PathMap;
 }
 
 const CATEGORY_LABELS: Record<RouteCategory, string> = {
@@ -24,6 +26,7 @@ export function RouteList({
   selectedIndex,
   onSelectRoute,
   disruptedPassages,
+  paths,
 }: Props): JSX.Element {
   const [activeTab, setActiveTab] = useState<RouteCategory | "all">("all");
 
@@ -82,6 +85,8 @@ export function RouteList({
               }
               onSelect={() => onSelectRoute(cat, i)}
               disruptedPassages={disruptedPassages}
+              scenario={data.query.scenario}
+              paths={paths}
             />
           ))}
         </section>

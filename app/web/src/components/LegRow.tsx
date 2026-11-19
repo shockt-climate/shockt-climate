@@ -1,11 +1,14 @@
 import type { JSX } from "react";
 import type { LegResponse } from "../api/schemas";
 import { MODE_COLORS } from "../types";
+import { pathDetail, type PathMap } from "../pathDetail";
 
 interface Props {
   leg: LegResponse;
   expanded: boolean;
   onToggle: () => void;
+  scenario: string;
+  paths: PathMap;
 }
 
 export function formatKg(value: number): string {
@@ -34,7 +37,15 @@ function factorLabel(factor: LegResponse["factor"]): string {
   return parts.length > 0 ? parts.join(" / ") : factor.variant;
 }
 
-export function LegRow({ leg, expanded, onToggle }: Props): JSX.Element {
+export function LegRow({
+  leg,
+  expanded,
+  onToggle,
+  scenario,
+  paths,
+}: Props): JSX.Element {
+  const detail = expanded ? pathDetail(leg, scenario, paths) : null;
+
   return (
     <div className="route-leg-block">
       <button
@@ -93,6 +104,30 @@ export function LegRow({ leg, expanded, onToggle }: Props): JSX.Element {
             <>
               <dt>Passages</dt>
               <dd>{leg.passages.join(", ")}</dd>
+            </>
+          )}
+          {detail && detail.avoided.length > 0 && (
+            <>
+              <dt>Avoids</dt>
+              <dd>
+                {detail.avoided.join(", ")} (open route:{" "}
+                {detail.openPassages.join(", ")})
+              </dd>
+            </>
+          )}
+          {detail && detail.divertedVia.length > 0 && (
+            <>
+              <dt>Diverted via</dt>
+              <dd>{detail.divertedVia.join(", ")}</dd>
+            </>
+          )}
+          {detail?.extraKm != null && (
+            <>
+              <dt>Against open</dt>
+              <dd>
+                {detail.extraKm >= 0 ? "+" : ""}
+                {Math.round(detail.extraKm).toLocaleString()} km
+              </dd>
             </>
           )}
         </dl>

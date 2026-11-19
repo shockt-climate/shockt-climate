@@ -2,10 +2,16 @@ import { useEffect, useRef, type JSX } from "react";
 import type { RoutesResponse, RouteResponse } from "../api/schemas";
 import type { RouteCategory } from "../types";
 import { MODE_COLORS, ROUTE_CATEGORIES } from "../types";
+import {
+  isModelledSeaLeg,
+  usablePath,
+  type PathMap,
+} from "../pathDetail";
 
 interface Props {
   data: RoutesResponse | null;
   selectedIndex: { category: RouteCategory; index: number } | null;
+  paths: PathMap;
 }
 
 type L = typeof import("leaflet");
@@ -28,7 +34,13 @@ function loadLeaflet() {
   return leafletLoaded;
 }
 
-export function RouteMap({ data, selectedIndex }: Props): JSX.Element {
+function toLatLngs(
+  coordinates: readonly (readonly [number, number])[]
+): [number, number][] {
+  return coordinates.map((c): [number, number] => [c[0], c[1]]);
+}
+
+export function RouteMap({ data, selectedIndex, paths }: Props): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("leaflet").Map | null>(null);
   const layersRef = useRef<import("leaflet").Layer[]>([]);
@@ -78,19 +90,55 @@ export function RouteMap({ data, selectedIndex }: Props): JSX.Element {
 
       const bounds: [number, number][] = [];
 
+      const scenario = data.query.scenario;
+
       for (const { leg, highlight } of allLegs) {
         const from: [number, number] = [leg.from_lat, leg.from_lon];
         const to: [number, number] = [leg.to_lat, leg.to_lon];
         bounds.push(from, to);
 
         const color = MODE_COLORS[leg.mode] ?? MODE_COLORS[leg.network] ?? "#888";
-        const line = new GeodesicLine([from, to], {
-          color,
-          weight: highlight ? 4 : 2,
-          opacity: highlight ? 1 : 0.4,
-        });
-        line.addTo(map);
-        layersRef.current.push(line);
+        const seaPath =
+          highlight && isModelledSeaLeg(leg)
+            ? usablePath(leg, scenario, paths)
+            : undefined;
+
+        if (seaPath) {
+          const openPath =
+            scenario === "open"
+              ? undefined
+              : usablePath(leg, "open", paths);
+          if (openPath) {
+            const baseline = new GeodesicLine(toLatLngs(openPath.coordinates), {
+              color: "#888",
+              weight: 3,
+              opacity: 0.8,
+              dashArray: "6 6",
+              steps: 1,
+            });
+            baseline.addTo(map);
+            layersRef.current.push(baseline);
+            bounds.push(...toLatLngs(openPath.coordinates));
+          }
+          const points = toLatLngs(seaPath.coordinates);
+          bounds.push(...points);
+          const line = new GeodesicLine(points, {
+            color,
+            weight: 4,
+            opacity: 1,
+            steps: 1,
+          });
+          line.addTo(map);
+          layersRef.current.push(line);
+        } else {
+          const line = new GeodesicLine([from, to], {
+            color,
+            weight: highlight ? 4 : 2,
+            opacity: highlight ? 1 : 0.4,
+          });
+          line.addTo(map);
+          layersRef.current.push(line);
+        }
 
         if (highlight) {
           const fromMarker = L.circleMarker(from, {
@@ -119,7 +167,7 @@ export function RouteMap({ data, selectedIndex }: Props): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [data, selectedIndex]);
+  }, [data, selectedIndex, paths]);
 
   useEffect(() => {
     return () => {

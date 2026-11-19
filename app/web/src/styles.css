@@ -222,6 +222,12 @@ button[type="submit"]:disabled {
   margin-bottom: 16px;
 }
 
+.path-notice {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
 /* Results layout */
 .results-layout {
   display: grid;

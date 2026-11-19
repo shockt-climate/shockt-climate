@@ -72,6 +72,7 @@ describe("RouteList", () => {
         selectedIndex={null}
         onSelectRoute={vi.fn()}
         disruptedPassages={noDisruptions}
+        paths={new Map()}
       />
     );
     expect(screen.getByText("All (3)")).toBeInTheDocument();
@@ -86,6 +87,7 @@ describe("RouteList", () => {
         selectedIndex={null}
         onSelectRoute={vi.fn()}
         disruptedPassages={noDisruptions}
+        paths={new Map()}
       />
     );
     expect(screen.queryByText(/Truck/)).not.toBeInTheDocument();
@@ -99,6 +101,7 @@ describe("RouteList", () => {
         selectedIndex={null}
         onSelectRoute={vi.fn()}
         disruptedPassages={noDisruptions}
+        paths={new Map()}
       />
     );
     fireEvent.click(screen.getByText("Air (1)"));
@@ -118,6 +121,7 @@ describe("RouteList", () => {
         selectedIndex={null}
         onSelectRoute={vi.fn()}
         disruptedPassages={noDisruptions}
+        paths={new Map()}
       />
     );
     expect(screen.getByText("No routes found.")).toBeInTheDocument();
@@ -131,6 +135,7 @@ describe("RouteList", () => {
         selectedIndex={null}
         onSelectRoute={onSelect}
         disruptedPassages={noDisruptions}
+        paths={new Map()}
       />
     );
     const cards = document.querySelectorAll(".route-card");
