@@ -1,4 +1,4 @@
-# DigitalOcean App Platform spec for the ShockT Climate route calculator.
+# App Platform spec for the ShockT Climate route calculator.
 # Lines marked [INSTANCE-SPECIFIC] must change when moving to a new DO account.
 name: shockt-climate
 region: tor # [INSTANCE-SPECIFIC] change to preferred region
