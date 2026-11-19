@@ -42,6 +42,7 @@ from shockt_engine.routing import (
     deduplicate_port_clusters,
     enumerate_port_routes,
     enumerate_routes,
+    haversine_km,
 )
 from shockt_engine.shares import (
     ShareError,
@@ -93,6 +94,7 @@ __all__ = [
     "diversion_rate",
     "enumerate_port_routes",
     "enumerate_routes",
+    "haversine_km",
     "lane_intensity",
     "lane_legs",
     "load_leg_factors",

@@ -22,6 +22,7 @@ class Node:
     lat: float
     lon: float
     source_key: str
+    coast_region: str | None = None
 
 
 @dataclass(frozen=True)
@@ -92,7 +93,7 @@ class RouteOptions:
     vehicle_overrides: Mapping[Mode, LegFactor] = field(default_factory=dict)
 
 
-def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     r = 6371.0
     lat1, lon1, lat2, lon2 = map(radians, (lat1, lon1, lat2, lon2))
     dlat = lat2 - lat1
@@ -147,7 +148,7 @@ def deduplicate_port_clusters(
     for port in sorted_ports:
         node = nodes[port]
         if any(
-            _haversine_km(node.lat, node.lon, nodes[k].lat, nodes[k].lon) < threshold_km
+            haversine_km(node.lat, node.lon, nodes[k].lat, nodes[k].lon) < threshold_km
             for k in kept
         ):
             continue

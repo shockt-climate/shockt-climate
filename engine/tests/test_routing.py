@@ -10,6 +10,7 @@ from shockt_engine import (
     deduplicate_port_clusters,
     enumerate_port_routes,
     enumerate_routes,
+    haversine_km,
     load_leg_factors,
 )
 
@@ -474,3 +475,10 @@ def test_port_routes_are_empty_for_other_modes_origins_and_non_eu_destinations()
         )
         == []
     )
+
+
+def test_haversine_km():
+    london_lat, london_lon = 51.5074, -0.1278
+    paris_lat, paris_lon = 48.8566, 2.3522
+    km = haversine_km(london_lat, london_lon, paris_lat, paris_lon)
+    assert 343 < km < 345

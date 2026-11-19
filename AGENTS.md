@@ -126,6 +126,7 @@ When guidance conflicts, higher sources win:
 - [Case 2 Analysis](./docs/plans/case-2-analysis.md): the Panama and Red Sea notebook, its shock-dating rule and new engine functions
 - [Refrigeration Analysis](./docs/plans/refrigeration-analysis.md): refrigerator component imports under 2025 tariffs
 - [Apparel Analysis](./docs/plans/apparel-analysis.md): apparel and footwear under the 2025 tariffs and the Red Sea diversions, with same-months comparisons
+- [Route Clustering](./docs/plans/route-clustering.md): grouping near-identical routes by structural and numerical similarity, with Pareto filtering and gap-based breakpoint detection
 - [Port Countries](./docs/plans/port-countries.md): a future plan to assign each Climate TRACE port's country from its coordinates instead of the source's label
 - [Team discussions](./docs/team-discussions/): meeting notes and talking points, one file per date
 
