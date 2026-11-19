@@ -27,8 +27,8 @@ describe("ScenarioSelector", () => {
       />
     );
     const selects = screen.getAllByRole("combobox");
-    fireEvent.change(selects[0], { target: { value: "suez_closed" } });
-    expect(onChange).toHaveBeenCalledWith("suez_closed");
+    fireEvent.change(selects[0], { target: { value: "red_sea_closed" } });
+    expect(onChange).toHaveBeenCalledWith("red_sea_closed");
   });
 
   it("calls onCompareChange with null when 'None' selected", () => {
@@ -36,7 +36,7 @@ describe("ScenarioSelector", () => {
     render(
       <ScenarioSelector
         scenario="open"
-        compareScenario="suez_closed"
+        compareScenario="red_sea_closed"
         onScenarioChange={vi.fn()}
         onCompareChange={onCompare}
       />
@@ -49,7 +49,7 @@ describe("ScenarioSelector", () => {
   it("excludes current scenario from compare dropdown", () => {
     render(
       <ScenarioSelector
-        scenario="suez_closed"
+        scenario="red_sea_closed"
         compareScenario={null}
         onScenarioChange={vi.fn()}
         onCompareChange={vi.fn()}
@@ -58,7 +58,7 @@ describe("ScenarioSelector", () => {
     const selects = screen.getAllByRole("combobox");
     const options = Array.from(selects[1].querySelectorAll("option"));
     const values = options.map((o) => o.getAttribute("value"));
-    expect(values).not.toContain("suez_closed");
+    expect(values).not.toContain("red_sea_closed");
     expect(values).toContain("open");
   });
 });

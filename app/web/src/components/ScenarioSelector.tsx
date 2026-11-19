@@ -2,7 +2,7 @@ import type { JSX } from "react";
 
 const SCENARIOS = [
   { value: "open", label: "Open (baseline)" },
-  { value: "suez_closed", label: "Suez closed" },
+  { value: "red_sea_closed", label: "Red Sea closed" },
   { value: "panama_closed", label: "Panama closed" },
   { value: "panama_and_red_sea_closed", label: "Panama + Red Sea closed" },
 ];

@@ -67,14 +67,14 @@ describe("fetchRoutes", () => {
       destination: "TX",
       cargo_t: 10,
       modes: "vessel",
-      scenario: "suez_closed",
+      scenario: "red_sea_closed",
       compare_scenario: "open",
     });
 
     const url = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
     expect(url).toContain("cargo_t=10");
     expect(url).toContain("modes=vessel");
-    expect(url).toContain("scenario=suez_closed");
+    expect(url).toContain("scenario=red_sea_closed");
     expect(url).toContain("compare_scenario=open");
   });
 
