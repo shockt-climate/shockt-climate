@@ -46,11 +46,14 @@ def _load_distance_sources(conn: psycopg.Connection[tuple]) -> dict[str, str]:
 
 def _load_nodes(conn: psycopg.Connection[tuple]) -> dict[str, Node]:
     rows = conn.execute(
-        "select node_id, kind, coalesce(name, source_key) as name, iso3, lat, lon, source_key"
+        "select node_id, kind, coalesce(name, source_key) as name, iso3, lat, lon, source_key,"
+        " coast_region"
         " from core.dim_nodes"
     ).fetchall()
     return {
-        r[0]: Node(kind=r[1], name=r[2], iso3=r[3], lat=r[4], lon=r[5], source_key=r[6])
+        r[0]: Node(
+            kind=r[1], name=r[2], iso3=r[3], lat=r[4], lon=r[5], source_key=r[6], coast_region=r[7]
+        )
         for r in rows
     }
 

@@ -36,7 +36,8 @@ def _seed_schema(conn: psycopg.Connection[tuple]) -> None:
             iso3 text,
             lat double precision,
             lon double precision,
-            source_key text
+            source_key text,
+            coast_region text
         )
     """)
 
@@ -175,19 +176,83 @@ def _seed_test_data(conn: psycopg.Connection[tuple]) -> None:
     )
 
     # Nodes: departure ports, seaports, airports, gateways, states, crossings, plants
+    # (node_id, kind, name, iso3, lat, lon, source_key, coast_region)
     nodes = [
-        ("departure_port:BGD_100", "departure_port", "Chittagong", "BGD", 22.33, 91.80, "BGD_100"),
-        ("departure_port:BGD_101", "departure_port", "Mongla", "BGD", 22.49, 89.60, "BGD_101"),
-        ("departure_port:IND_300", "departure_port", "Mumbai", "IND", 18.95, 72.84, "IND_300"),
-        ("departure_port:CHN_200", "departure_port", "Shanghai", "CHN", 31.23, 121.47, "CHN_200"),
-        ("arrival_seaport:2704", "arrival_seaport", "Los Angeles", "USA", 33.74, -118.27, "2704"),
-        ("arrival_seaport:0401", "arrival_seaport", "New York", "USA", 40.68, -74.04, "0401"),
-        ("departure_airport:DAC", "departure_airport", "Dhaka", "BGD", 23.84, 90.40, "DAC"),
-        ("air_gateway:LAX", "air_gateway", "Los Angeles", "USA", 33.94, -118.41, "LAX"),
-        ("eu_seaport:NLRTM", "eu_seaport", "Rotterdam", "NLD", 51.92, 4.50, "NLRTM"),
-        ("destination_state:TX", "destination_state", "Texas", "USA", 31.0, -100.0, "TX"),
-        ("destination_state:CA", "destination_state", "California", "USA", 36.78, -119.42, "CA"),
-        ("border_crossing:2304", "border_crossing", "Laredo", "MEX", 27.50, -99.51, "2304"),
+        (
+            "departure_port:BGD_100",
+            "departure_port",
+            "Chittagong",
+            "BGD",
+            22.33,
+            91.80,
+            "BGD_100",
+            None,
+        ),
+        (
+            "departure_port:BGD_101",
+            "departure_port",
+            "Mongla",
+            "BGD",
+            22.49,
+            89.60,
+            "BGD_101",
+            None,
+        ),
+        (
+            "departure_port:IND_300",
+            "departure_port",
+            "Mumbai",
+            "IND",
+            18.95,
+            72.84,
+            "IND_300",
+            None,
+        ),
+        (
+            "departure_port:CHN_200",
+            "departure_port",
+            "Shanghai",
+            "CHN",
+            31.23,
+            121.47,
+            "CHN_200",
+            None,
+        ),
+        (
+            "arrival_seaport:2704",
+            "arrival_seaport",
+            "Los Angeles",
+            "USA",
+            33.74,
+            -118.27,
+            "2704",
+            "west",
+        ),
+        (
+            "arrival_seaport:0401",
+            "arrival_seaport",
+            "New York",
+            "USA",
+            40.68,
+            -74.04,
+            "0401",
+            "east",
+        ),
+        ("departure_airport:DAC", "departure_airport", "Dhaka", "BGD", 23.84, 90.40, "DAC", None),
+        ("air_gateway:LAX", "air_gateway", "Los Angeles", "USA", 33.94, -118.41, "LAX", "west"),
+        ("eu_seaport:NLRTM", "eu_seaport", "Rotterdam", "NLD", 51.92, 4.50, "NLRTM", None),
+        ("destination_state:TX", "destination_state", "Texas", "USA", 31.0, -100.0, "TX", "gulf"),
+        (
+            "destination_state:CA",
+            "destination_state",
+            "California",
+            "USA",
+            36.78,
+            -119.42,
+            "CA",
+            "west",
+        ),
+        ("border_crossing:2304", "border_crossing", "Laredo", "MEX", 27.50, -99.51, "2304", None),
         (
             "mexico_plant:plant_1",
             "mexico_plant",
@@ -196,13 +261,15 @@ def _seed_test_data(conn: psycopg.Connection[tuple]) -> None:
             25.67,
             -100.31,
             "plant_1",
+            None,
         ),
     ]
-    for node_id, kind, name, iso3, lat, lon, source_key in nodes:
+    for node_id, kind, name, iso3, lat, lon, source_key, coast_region in nodes:
         conn.execute(
-            "insert into core.dim_nodes (node_id, kind, name, iso3, lat, lon, source_key) "
-            "values (%s, %s, %s, %s, %s, %s, %s)",
-            (node_id, kind, name, iso3, lat, lon, source_key),
+            "insert into core.dim_nodes "
+            "(node_id, kind, name, iso3, lat, lon, source_key, coast_region) "
+            "values (%s, %s, %s, %s, %s, %s, %s, %s)",
+            (node_id, kind, name, iso3, lat, lon, source_key, coast_region),
         )
 
     # Departure ports
